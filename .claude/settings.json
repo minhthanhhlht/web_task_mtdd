@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Edit(frontend/src/**)",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/ui-ux-reminder.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Nhắc UI/UX evondevKit..."
+          }
+        ]
+      }
+    ]
+  }
+}

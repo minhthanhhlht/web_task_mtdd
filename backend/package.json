@@ -1,0 +1,16 @@
+{
+  "name": "task-tracker-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "backup": "node backup.js",
+    "create-user": "node create-user.js",
+    "seed": "node seed.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.0",
+    "express": "^5.1.0"
+  }
+}

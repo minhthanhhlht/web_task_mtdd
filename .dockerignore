@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+.git
+.claude
+*.md
+start.bat
+
+# Không đưa dữ liệu và bí mật vào image
+backend/.env
+backend/seed-data.json
+backend/tasks.db
+backend/tasks.db-*
+backend/backups

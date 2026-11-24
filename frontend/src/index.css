@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* Token giao diện theo evondevKit (chế độ sáng): màu nhấn xanh dương, sắc Tinted (màu gắn với dữ liệu), không gradient, viền 1px mảnh. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+
+  /* Nền, bề mặt, chữ */
+  --color-background: #f4f4f6;
+  --color-surface: #ffffff;
+  --color-surface-overlay: #ffffff;
+  --color-foreground: #2c2c2c;
+  --color-muted: #707070;
+
+  /* Viền: border = trang trí trên nền trắng, border-strong = chức năng (ô nhập, nút viền, đường kẻ bảng) */
+  --color-border: #f7f7f8;
+  --color-border-strong: #eaeaea;
+
+  /* Điểm nhấn (đen gần tuyệt đối) và các lớp phủ hover */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-foreground: #ffffff;
+  --color-primary-light: rgb(37 99 235 / 0.08);
+
+  /* Sắc phân loại (Tinted, P17): chỉ cho ô icon, chấm, biểu đồ; bỏ các sắc cách xanh nhấn dưới 30° */
+  --color-cat-1: #0d9488;
+  --color-cat-2: #7c3aed;
+  --color-cat-3: #c026d3;
+  --color-item-hover: #f4f4f6;
+  --color-surface-hover: #f8f8fa;
+  --color-secondary: #e7e8ec;
+  --color-secondary-hover: #dbdce2;
+  /* Nền khi rê nút viền: khác cả nền trang (#f4f4f6) lẫn nền thẻ trắng */
+  --color-button-hover: #ececef;
+
+  /* Focus của ô nhập */
+  --color-focus: #2563eb;
+  --color-focus-ring: rgb(37 99 235 / 0.12);
+
+  /* Hành động phá hủy (rose) và lỗi (red): chỉ hai màu đỏ */
+  --color-danger: #c70036;
+  --color-danger-bg: rgb(255 32 86 / 0.1);
+  --color-danger-bg-hover: rgb(255 32 86 / 0.15);
+  --color-error: #fb2c36;
+  --color-error-text: #e7000b;
+  --color-error-strong: #c10007;
+  --color-error-bg: #fef2f2;
+  --color-error-border: #ffc9c9;
+
+  /* Trạng thái: thành công, cảnh báo, trung tính */
+  --color-success: #007a55;
+  --color-success-bg: #ecfdf5;
+  --color-warning: #bb4d00;
+  --color-warning-bg: #fffbeb;
+  --color-neutral: #52525c;
+  --color-neutral-bg: #f4f4f5;
+
+  /* Đổ bóng chỉ cho lớp nổi: popover/menu/toast và modal */
+  --shadow-popover: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/* Nền trang, chữ mặc định text-sm, chống răng cưa */
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-size: 0.875rem;
+    -webkit-font-smoothing: antialiased;
+  }
+  button:not(:disabled),
+  [role="button"],
+  label[for],
+  select {
+    cursor: pointer;
+  }
+}
+
+/* Checkbox và radio tự vẽ (16px, viền token, nền đen khi chọn) thay control gốc của trình duyệt */
+@layer base {
+  input[type="checkbox"],
+  input[type="radio"] {
+    appearance: none;
+    flex-shrink: 0;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid #c4c4cd;
+    background-color: var(--color-surface);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 0.75rem;
+    transition: background-color 0.15s, border-color 0.15s;
+  }
+  input[type="checkbox"] { border-radius: 0.25rem; }
+  input[type="radio"] { border-radius: 9999px; }
+  input[type="checkbox"]:hover:not(:disabled),
+  input[type="radio"]:hover:not(:disabled) { border-color: var(--color-muted); }
+  input[type="checkbox"]:checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E");
+  }
+  input[type="checkbox"]:indeterminate {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E");
+  }
+  input[type="radio"]:checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    background-image: radial-gradient(circle, white 0 28%, transparent 30%);
+    background-size: 100%;
+  }
+  input[type="checkbox"]:disabled,
+  input[type="radio"]:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+/* Nút, liên kết, tab không vẽ vòng focus (kit I13); ô nhập đã có viền + vòng mờ riêng */
+@layer base {
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  input[type="checkbox"]:focus-visible,
+  input[type="radio"]:focus-visible,
+  select:focus-visible {
+    outline: none;
+  }
+}
