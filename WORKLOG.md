@@ -2,6 +2,19 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — task.mtdd.io.vn vào được
+
+- Nguyên nhân 502: Cloudflare Tunnel trỏ `task.mtdd.io.vn` tới `http://192.168.20.24:6021` (cổng trên máy chủ) nhưng ứng dụng chưa mở cổng ra máy chủ. Sửa: đặt `ports_mappings = 6021:6021` ở Coolify (giống app `video` dùng `6868:6868`) rồi deploy lại.
+- Kiểm tra trên https://task.mtdd.io.vn: trả 200, đăng nhập `admin` thành công qua HTTPS, hiện màn ép đổi mật khẩu, console không lỗi. Chưa đổi mật khẩu admin (để người dùng tự đặt).
+- Thêm quy tắc "Deploy và test" vào `CLAUDE.md`/`RULES.md`.
+
+## 2026-11-25 — Deploy lên Coolify
+
+- Đẩy mã lên GitHub `minhthanhhlht/web_task_mtdd` (nhánh `main`). Coolify (manage.mtdd.io.vn): project "Quan ly task", ứng dụng `quan-ly-task` (build pack Dockerfile, cổng 6021, domain `https://task.mtdd.io.vn`).
+- Cấu hình: volume `/data` (database), file mount `seed-data.json`, biến môi trường `ADMIN_USERNAME`, `ADMIN_PASSWORD` (sinh riêng, không ghi vào repo), `SEED_FILE`.
+- Kết quả: build xong, trạng thái `running:healthy`; log: tạo admin mặc định, nạp 15 Dev.
+- Còn lại: tạo bản ghi DNS cho `task.mtdd.io.vn` (chưa phân giải), kiểm tra truy cập qua HTTPS, đổi mật khẩu admin ở lần đăng nhập đầu, thu hồi API token đã dùng.
+
 ## 2026-11-25 — Chuẩn bị triển khai Coolify (Docker)
 
 - Thêm `Dockerfile`, `.dockerignore`; backend nhận `DB_PATH`, `SEED_FILE`, `TRUST_PROXY`; cookie phiên có `Secure` khi qua HTTPS; bộ giới hạn đăng nhập dùng IP khách thật (`req.ip`).

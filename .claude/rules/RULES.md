@@ -82,4 +82,5 @@
 - Làm theo thứ tự ở mục 0 của `PROJECT_SPEC.md`; kiểm tra bằng bộ chấp nhận ở mục 10.
 - Sửa nhỏ, đúng phạm vi yêu cầu; không refactor lan man.
 - Không commit `tasks.db`, `tasks.db-*`, `node_modules`, `dist`, `backend/backups` (đã có trong `.gitignore`).
+- **Sau mọi thay đổi mã: commit, push, deploy lên Coolify rồi test trên https://task.mtdd.io.vn** (quy trình chi tiết ở `CLAUDE.md`, mục "Deploy và test"). Chưa deploy và test thì chưa được coi là xong.
 - Sau **mỗi lần chỉnh sửa** ghi một phiên vào `WORKLOG.md` (mới nhất ở trên): ngày giờ `YYYY-MM-DD HH:mm`, việc đã làm, file đổi, kết quả chạy thử, tồn đọng, việc tiếp theo. Cập nhật `README.md` nếu thông tin dự án đổi. Không ghi dữ liệu task thật vào hai file này.
