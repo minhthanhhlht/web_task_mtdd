@@ -16,9 +16,12 @@ RUN npm ci --omit=dev
 
 # --- Giai đoạn 3: image chạy ---
 FROM node:22-bookworm-slim
+# Múi giờ Việt Nam: SQLite dùng datetime('now','localtime') và giờ chốt 16:30 nên container không được chạy giờ UTC
 ENV NODE_ENV=production \
     DB_PATH=/data/tasks.db \
-    TRUST_PROXY=1
+    TRUST_PROXY=1 \
+    TZ=Asia/Ho_Chi_Minh
+RUN apt-get update && apt-get install -y --no-install-recommends tzdata && rm -rf /var/lib/apt/lists/*
 WORKDIR /app/backend
 COPY --from=backend-deps /app/backend/node_modules ./node_modules
 COPY backend/ ./

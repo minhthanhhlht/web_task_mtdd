@@ -2,6 +2,12 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Sửa múi giờ container (UTC → Asia/Ho_Chi_Minh)
+
+- Phát hiện khi test đầy đủ trên task.mtdd.io.vn: task tạo lúc 02:01 giờ Việt Nam bị ghi `19:02` (ngày hôm trước) vì container chạy UTC.
+- Sửa `Dockerfile`: `TZ=Asia/Ho_Chi_Minh` và cài `tzdata`. Database production lúc này chưa có task thật nên không phải chuyển dữ liệu cũ.
+- Test trên production trước khi sửa: Quản lý data (15 Dev, 10 mục/trang), mẫu checklist 11 mục, tạo task, tick, vấn đề QnA, luật CLOSED (client + server), đóng task, xóa task, toast, hộp thoại; console sạch (400 là phản hồi đúng của luật CLOSED).
+
 ## 2026-11-25 — task.mtdd.io.vn vào được
 
 - Nguyên nhân 502: Cloudflare Tunnel trỏ `task.mtdd.io.vn` tới `http://192.168.20.24:6021` (cổng trên máy chủ) nhưng ứng dụng chưa mở cổng ra máy chủ. Sửa: đặt `ports_mappings = 6021:6021` ở Coolify (giống app `video` dùng `6868:6868`) rồi deploy lại.
