@@ -467,6 +467,11 @@ export const restoreTask = db.transaction((id) => {
   return getTaskWithCounts(id);
 });
 
+// Xóa vĩnh viễn một task đã xóa mềm (checklist, vấn đề, tiến độ, nhật ký xóa theo ON DELETE CASCADE); task còn hoạt động thì không xóa được
+export function purgeTask(id) {
+  if (db.prepare('DELETE FROM tasks WHERE id = ? AND xoa_luc IS NOT NULL').run(id).changes === 0) throw notFound('Không tìm thấy task đã xóa');
+}
+
 // Chuyển PIC (chủ sở hữu) của task sang tài khoản khác
 export const transferTask = db.transaction((id, newOwnerId) => {
   const task = db.prepare('SELECT * FROM tasks WHERE id = ? AND xoa_luc IS NULL').get(id);

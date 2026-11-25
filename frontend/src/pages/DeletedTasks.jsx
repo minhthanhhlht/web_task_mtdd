@@ -1,9 +1,10 @@
 // Trang "Task đã xóa" (chỉ admin): danh sách task xóa mềm và nút Khôi phục.
 import { useCallback, useEffect, useState } from 'react';
-import { listDeletedTasks, restoreDeletedTask } from '../api.js';
+import { listDeletedTasks, purgeDeletedTask, restoreDeletedTask } from '../api.js';
 import { useDialog } from '../components/DialogContext.jsx';
 import MenuIcon from '../components/MenuIcon.jsx';
 import Pagination from '../components/Pagination.jsx';
+import RowMenu from '../components/RowMenu.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
 import { ErrorBox, Loading } from '../components/StateMessage.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
@@ -67,10 +68,26 @@ export default function DeletedTasks() {
     }
   };
 
+  // Xóa vĩnh viễn một task sau khi xác nhận (không hoàn tác được)
+  const purge = async (task) => {
+    const ok = await dialog.confirm({ title: 'Xóa vĩnh viễn task', message: `Xóa vĩnh viễn task ${task.ma_task} - ${task.ten}? Toàn bộ checklist, vấn đề, tiến độ và lịch sử của task cũng bị xóa. Không thể hoàn tác.`, confirmLabel: 'Xóa vĩnh viễn', danger: true });
+    if (!ok) return;
+    setBusyId(task.id);
+    try {
+      await purgeDeletedTask(task.id);
+      toast.success(`Đã xóa vĩnh viễn task ${task.ma_task}`);
+      load();
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div>
       <h1 className="mb-1 text-xl font-semibold">Task đã xóa</h1>
-      <p className="mb-4 text-sm text-muted">Task bị xóa vẫn được giữ lại. Chỉ quản trị viên khôi phục được.</p>
+      <p className="mb-4 text-sm text-muted">Task bị xóa vẫn được giữ lại. Chỉ quản trị viên khôi phục hoặc xóa vĩnh viễn được.</p>
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <input className={`min-w-44 flex-1 sm:max-w-sm ${INPUT_CLASS}`} aria-label="Tìm Số Pwire, tên..." name="tim_task_da_xoa" placeholder="Tìm Số Pwire, tên..." title="Tìm theo số Pwire, tên, link, người giao, Dev, ghi chú, PIC" value={search} onChange={(e) => setSearch(e.target.value)} />
       </div>
@@ -97,8 +114,11 @@ export default function DeletedTasks() {
                 <td className="whitespace-nowrap px-1.5 py-1.5"><ProgressBar value={task.tien_do} /></td>
                 <td className="whitespace-nowrap px-1.5 py-1.5 tabular-nums">{formatDateTime(task.xoa_luc)}</td>
                 <td className="whitespace-nowrap px-1.5 py-1.5">{task.nguoi_xoa ? <UserChip name={task.nguoi_xoa} /> : '—'}</td>
-                <td className="whitespace-nowrap px-1.5 py-1.5 text-right">
-                  <button type="button" className={BUTTON_SMALL} disabled={busyId === task.id} onClick={() => restore(task)}>{busyId === task.id ? 'Đang khôi phục...' : 'Khôi phục'}</button>
+                <td className="whitespace-nowrap px-1.5 py-1.5">
+                  <div className="flex items-center justify-end gap-1">
+                    <button type="button" className={BUTTON_SMALL} disabled={busyId === task.id} onClick={() => restore(task)}>Khôi phục</button>
+                    <RowMenu items={[{ label: 'Xóa vĩnh viễn', icon: 'trash', danger: true, disabled: busyId === task.id, onClick: () => purge(task) }]} />
+                  </div>
                 </td>
               </tr>
             ))}

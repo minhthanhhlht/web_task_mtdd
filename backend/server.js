@@ -170,6 +170,11 @@ app.post('/api/deleted-tasks/:id/restore', handle((req, res) => {
   res.json(store.restoreTask(parseId(req.params.id)));
 }));
 
+app.delete('/api/deleted-tasks/:id', handle((req, res) => {
+  store.purgeTask(parseId(req.params.id));
+  res.status(204).end();
+}));
+
 // ===== Checklist và vấn đề =====
 
 

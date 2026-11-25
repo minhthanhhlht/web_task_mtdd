@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Xóa vĩnh viễn trong "Task đã xóa"
+
+- API admin `DELETE /api/deleted-tasks/:id` (xóa hẳn khỏi DB, cascade dữ liệu con; chỉ task đã xóa mềm). Giao diện: menu `…` ở mỗi dòng có "Xóa vĩnh viễn" với hộp xác nhận `danger`.
+
 ## 2026-11-25 — Xóa mềm task + trang admin "Task đã xóa" (khôi phục)
 
 - DB: cột `tasks.xoa_luc`, `tasks.nguoi_xoa` (migration). `DELETE /api/tasks/:id` thành xóa mềm; task đã xóa bị loại khỏi danh sách, checklist, CSV, áp dụng mẫu, eod và mọi API theo id (404).
