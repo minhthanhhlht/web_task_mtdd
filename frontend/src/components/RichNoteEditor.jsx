@@ -123,7 +123,7 @@ export default function RichNoteEditor({ value, onChange }) {
         onBlur={emit}
         onPaste={handlePaste}
         onDrop={handleDrop}
-        className={`min-h-28 max-h-96 resize-y overflow-auto rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm outline-none focus:border-focus focus:ring-2 focus:ring-focus-ring ${CONTENT_STYLE}`}
+        className={`min-h-40 max-h-[80vh] resize-y overflow-y-auto overflow-x-auto rounded-lg border border-border-strong bg-surface px-3 py-2 text-sm outline-none focus:border-focus focus:ring-2 focus:ring-focus-ring ${CONTENT_STYLE}`}
       />
     </div>
   );

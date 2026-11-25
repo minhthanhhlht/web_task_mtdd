@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Ô ghi chú cho viết dài hơn
+
+- `RichNoteEditor.jsx`: vùng soạn `min-h-40 max-h-[80vh]` (trước `max-h-96` chặn cả việc kéo giãn), vẫn `resize-y` và cuộn dọc khi nội dung dài.
+
 ## 2026-11-25 — Dấu * bắt buộc màu đỏ
 
 - `TaskForm.jsx`: dấu `*` ở nhãn Số Pwire, Tên task, Ngày giờ nhận, Người giao tách thành span `text-error-strong` (token lỗi), không đổi hành vi.
