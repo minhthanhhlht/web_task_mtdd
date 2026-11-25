@@ -458,7 +458,7 @@ Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị th�
 | --- | --- | --- | --- |
 | `/` | Đang xử lý | list | `end` |
 | `/tasks/new` | Thêm task | plus | |
-| `/cuoi-chieu` | Cập nhật tiến độ | chart | chấm số đỏ (`rounded-full bg-red-600`) = số task chưa cập nhật (trước 16:30 chỉ đếm task bị bỏ sót; từ 16:30 đếm tất cả) |
+| `/cuoi-chieu` | Cập nhật tiến độ | chart | chấm số đỏ (`rounded-full bg-red-600`) = số task chưa cập nhật hôm nay (đếm tất cả, kể cả trước 16:30) |
 | `/checklist` | Checklist | check | |
 | `/trang-thai` | Quản lý trạng thái | tag | **chỉ admin** |
 | `/quan-ly-data` | Quản lý data | database | **chỉ admin** |

@@ -40,7 +40,7 @@ export default function useReportSummary(reloadKey) {
 
   const afterCutoff = now.toLocaleTimeString('sv-SE').slice(0, 5) >= REPORT_CUTOFF_TIME;
   const missed = tasks.filter((t) => getReportStatus(t, now).level === 'missed').length;
-  // Trước giờ chốt chỉ đếm task bị bỏ sót; từ giờ chốt đếm tất cả
-  const total = afterCutoff ? tasks.length : missed;
+  // Đếm mọi task chưa cập nhật hôm nay, kể cả trước giờ chốt (giờ chốt chỉ ảnh hưởng màu nhãn và câu chữ)
+  const total = tasks.length;
   return { total, missed, now, afterCutoff, reload };
 }

@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Đếm task chưa cập nhật ngay từ đầu ngày
+
+- `useReportSummary`: `total` luôn = mọi task chưa cập nhật hôm nay (trước đây trước 16:30 chỉ đếm task bỏ sót). Ảnh hưởng ô "Cần cập nhật tiến độ", chấm đỏ menu, thanh nhắc. Cập nhật PROJECT_SPEC mục 7.5.
+
 ## 2026-11-25 — Hiện đủ ngày tháng năm giờ phút giây
 
 - `formatDateTime` cắt 19 ký tự (có giây); cột Deadline/Cập nhật ở danh sách hiện `dd/mm/yyyy HH:mm:ss`; nhãn "Đã cập nhật lúc" có giây. Cập nhật PROJECT_SPEC mục 7.6.
