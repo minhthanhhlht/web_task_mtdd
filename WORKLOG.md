@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Hiện mật khẩu khi tạo tài khoản
+
+- `Accounts.jsx`: ô mật khẩu ở form thêm tài khoản chuyển `type="text"` (hiện rõ), `autoComplete="off"`. Ô đổi mật khẩu của chính mình và hộp đặt lại mật khẩu vẫn ẩn.
+
 ## 2026-11-25 — Xóa vĩnh viễn trong "Task đã xóa"
 
 - API admin `DELETE /api/deleted-tasks/:id` (xóa hẳn khỏi DB, cascade dữ liệu con; chỉ task đã xóa mềm). Giao diện: menu `…` ở mỗi dòng có "Xóa vĩnh viễn" với hộp xác nhận `danger`.

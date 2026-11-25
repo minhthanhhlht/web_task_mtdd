@@ -501,7 +501,7 @@ Màn hình hẹp (`< xl`) xếp dọc theo thứ tự ①②③④. Mọi thao t
 
 **Quản lý data `/quan-ly-data`** (admin): tab theo nhóm (hiện có `Dev`); thêm một mục, "Thêm nhiều" (textarea mỗi dòng một tên → bulk, báo `added/skipped`), bảng `# | Tên | số task đang dùng | thao tác` (đổi tên rời ô/Enter, ↑ ↓, Xóa có xác nhận; khóa nút nếu đang được task dùng), phân trang phía trình duyệt.
 
-**Tài khoản `/tai-khoan`:** mọi người: khối "Đổi mật khẩu của tôi" (mật khẩu hiện tại, mới, nhập lại; `max-w-xl`). **Admin** thêm khối "Quản lý tài khoản": form thêm (tên, mật khẩu, select vai trò) + bảng `Tên đăng nhập | Vai trò (select đổi ngay) | Tạo lúc | Số phiên | thao tác` với **Đặt lại mật khẩu** (`dialog.prompt` mật khẩu ẩn, ≥ 8 ký tự, báo lỗi trong hộp) và **Xóa** (`dialog.confirm` danger; khóa với chính mình).
+**Tài khoản `/tai-khoan`:** mọi người: khối "Đổi mật khẩu của tôi" (mật khẩu hiện tại, mới, nhập lại; `max-w-xl`). **Admin** thêm khối "Quản lý tài khoản": form thêm (tên, mật khẩu **hiện chữ rõ** vì admin cần đọc để đưa cho người dùng, select vai trò) + bảng `Tên đăng nhập | Vai trò (select đổi ngay) | Tạo lúc | Số phiên | thao tác` với **Đặt lại mật khẩu** (`dialog.prompt` mật khẩu ẩn, ≥ 8 ký tự, báo lỗi trong hộp) và **Xóa** (`dialog.confirm` danger; khóa với chính mình).
 
 ### 7.6 Kiểu dáng chung (Tailwind)
 

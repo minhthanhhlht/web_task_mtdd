@@ -100,7 +100,7 @@ function ManageUsers() {
       <h2 className="text-lg font-semibold">Quản lý tài khoản</h2>
       <form onSubmit={add} noValidate className="flex flex-wrap items-end gap-3">
         <div><label htmlFor="new-user-name" className="mb-1 block text-sm">Tên đăng nhập</label><input id="new-user-name" name="ten_dang_nhap" autoComplete="off" className={INPUT_CLASS} value={form.ten_dang_nhap} onChange={(e) => setForm({ ...form, ten_dang_nhap: e.target.value })} /></div>
-        <div><label htmlFor="new-user-password" className="mb-1 block text-sm">Mật khẩu</label><input id="new-user-password" name="mat_khau" autoComplete="new-password" type="password" className={INPUT_CLASS} value={form.mat_khau} onChange={(e) => setForm({ ...form, mat_khau: e.target.value })} /></div>
+        <div><label htmlFor="new-user-password" className="mb-1 block text-sm">Mật khẩu</label><input id="new-user-password" name="mat_khau" autoComplete="off" type="text" className={INPUT_CLASS} value={form.mat_khau} onChange={(e) => setForm({ ...form, mat_khau: e.target.value })} /></div>
         <div>
           <label htmlFor="new-user-role" className="mb-1 block text-sm">Vai trò</label>
           <select id="new-user-role" name="vai_tro" className={INPUT_CLASS} value={form.vai_tro} onChange={(e) => setForm({ ...form, vai_tro: e.target.value })}><option value="user">user</option><option value="admin">admin</option></select>
