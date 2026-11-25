@@ -213,7 +213,8 @@ CREATE TABLE IF NOT EXISTS task_history (
   thoi_gian TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   loai TEXT NOT NULL CHECK (loai IN ('task','tien_do','checklist','van_de')),
   truong TEXT, gia_tri_cu TEXT, gia_tri_moi TEXT,
-  mo_ta TEXT NOT NULL
+  mo_ta TEXT NOT NULL,
+  nguoi_thay_doi TEXT                           -- tên đăng nhập người thực hiện (chụp lại lúc ghi); NULL nếu không rõ
 );
 
 CREATE TABLE IF NOT EXISTS users (
@@ -359,7 +360,7 @@ Quy tắc: tên đăng nhập `/^[A-Za-z0-9._-]{3,50}$/` (lỗi: `Tên đăng nh
 
 **`DELETE /api/tasks/:id`** — 204 (user chỉ xóa task của mình; admin mọi task).
 
-**`GET /api/tasks/:id/history`** — `{ items, total }`, phân trang (mặc định limit 50), mới nhất trước (`ORDER BY id DESC`). Item: `{ id, thoi_gian, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta }`.
+**`GET /api/tasks/:id/history`** — `{ items, total }`, phân trang (mặc định limit 50), mới nhất trước (`ORDER BY id DESC`). Item: `{ id, thoi_gian, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta, nguoi_thay_doi }`.
 
 ### 6.4 Checklist, vấn đề, mẫu
 
@@ -391,7 +392,7 @@ Quy tắc: tên đăng nhập `/^[A-Za-z0-9._-]{3,50}$/` (lỗi: `Tên đăng nh
 
 ### 6.7 Nhật ký thay đổi (`task_history`)
 
-Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị thực sự đổi. `loai`: `task` (thông tin), `tien_do`, `checklist`, `van_de`.
+Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị thực sự đổi. Mỗi dòng ghi thêm **người thay đổi** = tên đăng nhập của người gọi API (middleware đặt `AsyncLocalStorage` sau `enforceRoles`, `addHistory` và các câu `INSERT … SELECT` đổi tên trạng thái/Dev đọc từ đó); lệnh chạy tay (seed, backup) thì `NULL`. Là bản chụp lúc ghi, đổi hay xóa tài khoản sau đó không đổi dòng cũ. `ALTER TABLE` thêm cột cho DB cũ (dòng cũ `NULL`, giao diện hiện `—`). `loai`: `task` (thông tin), `tien_do`, `checklist`, `van_de`.
 - Tạo task: `Tạo task` (task).
 - Đổi trường: `<Nhãn>: <cũ> → <mới>` với nhãn: `ma_task→Số Pwire`, `ten→Tên task`, `ngay_nhan→Ngày giờ nhận`, `deadline→Deadline`, `dev_hoan_thanh_thuc_te→Thực tế dev hoàn thành`, `nguoi_giao→Người giao`, `link_test_case→Link Pwire`, `dev_cross_check→Dev Cross check` (loại `task`); `tien_do→Tiến độ`, `trang_thai→Trạng thái`, `ghi_chu→Ghi chú` (loại `tien_do`). Giá trị rỗng hiển thị `(trống)`; tiến độ thêm `%`; ghi chú dùng bản chữ thuần; mọi giá trị cắt 500 ký tự (+`…`). Lưu `truong` = nhãn, `gia_tri_cu`, `gia_tri_moi`.
 - Các câu khác: xem 5.3 (PIC), 6.3–6.6.
@@ -446,7 +447,7 @@ Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị th�
 - **FieldError** (chữ đỏ nhỏ dưới ô), **StateMessage** (`Loading` "Đang tải...", `ErrorBox` đỏ có nút "Thử lại"), **PwireLink** (liên kết `target="_blank" rel="noopener noreferrer"`, chỉ khi URL http/https hợp lệ, không thì chữ thường), **MenuIcon** (SVG nội tuyến outline 24×24, `currentColor`; khóa `list plus chart check tag database archive users download`).
 - **DateTimeInput**: **một ô** `YYYY-MM-DD HH:mm` 24 giờ. Gõ trực tiếp (đủ và hợp lệ mới báo; rời ô mà dở dang thì trả về giá trị cũ); bấm vào ô / biểu tượng lịch mở bảng: lịch tháng (tuần bắt đầu **thứ Hai**, `T2…CN`, hôm nay có viền, ngày chọn tô xanh, nút `‹ ›`), ô chọn giờ 00-23, phút 00-59, nút **Bây giờ**, **Xóa** (chỉ khi `clearable` và có giá trị), **Xong**; đóng khi bấm ngoài hoặc Esc. Giá trị vào/ra dạng `YYYY-MM-DDTHH:mm` hoặc `''`.
 - **RichNoteEditor**: `contentEditable` + thanh công cụ (`B`, `I`, `U`, `Dấu chấm`, `Đánh số`, `Xóa kiểu`, `Link` (hỏi URL bằng `dialog.prompt`, nhớ/khôi phục vùng chọn), `Ảnh` (chọn file nhiều ảnh)). Dán: ảnh đơn thuần (không có text/html / text/plain) → thu nhỏ + `insertImage`; có `text/html` → `insertHTML(sanitizeFragment(...))`; còn lại dán chữ thường. Kéo thả ảnh chèn tại vị trí thả. `onChange(html)`; rỗng (không chữ, ảnh, bảng, hr) → `''`. Vùng soạn `min-h-28 max-h-96 resize-y overflow-auto`, có style cho `a ul ol li table td th img blockquote h1-3 pre` bằng biến thể `[&_x]:` của Tailwind (vì preflight reset). Giá trị chữ thuần cũ được nạp qua `noteToHtml`.
-- **ChecklistBox** (checkbox + tên mục, gạch ngang khi xong, hiện "xong lúc …"), **SelectAllCheckbox** (checkbox 3 trạng thái tick/không tick/lưng chừng; bỏ tick tất cả hỏi `dialog.confirm`), **IssueForm / IssueRow** (thêm; hiển thị dòng; sửa tại chỗ loại/lý do/người liên quan; nút đổi trạng thái `Mở↔Đã xử lý`; xóa có xác nhận), **TaskHistory** (bảng `Thời gian | Nhóm | Nội dung thay đổi`, nhóm là nhãn màu: Thông tin / Tiến độ xanh dương / Checklist xanh lá / Vấn đề; phân trang với `Số thay đổi/trang`), **TaskPicker** (tìm + phân trang cố định `PAGE_SIZE` (10), chọn nhiều task cho "Áp dụng mẫu"), **ApplyTemplatePanel** (xem 7.5 Checklist), **ChecklistTemplateEditor**, **ChecklistOverview**, **PicTransfer** (admin: "PIC: **tên**" + ô chọn "Chuyển cho..." (loại PIC hiện tại) + nút Chuyển + `dialog.confirm` → `PUT owner` → tải lại + toast).
+- **ChecklistBox** (checkbox + tên mục, gạch ngang khi xong, hiện "xong lúc …"), **SelectAllCheckbox** (checkbox 3 trạng thái tick/không tick/lưng chừng; bỏ tick tất cả hỏi `dialog.confirm`), **IssueForm / IssueRow** (thêm; hiển thị dòng; sửa tại chỗ loại/lý do/người liên quan; nút đổi trạng thái `Mở↔Đã xử lý`; xóa có xác nhận), **TaskHistory** (bảng `Thời gian | Người thay đổi | Nhóm | Nội dung thay đổi` (người thay đổi là `UserChip`, `—` nếu không rõ), nhóm là nhãn màu: Thông tin / Tiến độ xanh dương / Checklist xanh lá / Vấn đề; phân trang với `Số thay đổi/trang`), **TaskPicker** (tìm + phân trang cố định `PAGE_SIZE` (10), chọn nhiều task cho "Áp dụng mẫu"), **ApplyTemplatePanel** (xem 7.5 Checklist), **ChecklistTemplateEditor**, **ChecklistOverview**, **PicTransfer** (admin: "PIC: **tên**" + ô chọn "Chuyển cho..." (loại PIC hiện tại) + nút Chuyển + `dialog.confirm` → `PUT owner` → tải lại + toast).
 - **TaskForm** (`initialValues`, `showProgress`, `submitLabel`, `onSubmit(payload)`, `gridClass` mặc định `grid-cols-1 sm:grid-cols-2`): các ô theo thứ tự — Số Pwire*, Tên task*, Ngày giờ nhận* (DateTimeInput), Deadline (ngày giờ) (clearable), Thực tế dev hoàn thành (ngày giờ) (clearable), Người giao*, Dev Cross check (select: `— Chưa chọn —` + danh sách Dev; giữ giá trị hiện tại nếu đã bị xóa khỏi danh sách), Link Pwire (placeholder `https://...`, có link hợp lệ thì hiện dưới ô `↗ Mở link Pwire`), nếu `showProgress`: Tiến độ (%) (number) + Trạng thái (select các trạng thái); rồi **Ghi chú** (RichNoteEditor); nút submit (`Đang lưu...` khi lưu). Kiểm tra phía client trước khi gửi (không lưu khi còn lỗi, lỗi đỏ ngay dưới ô): Số Pwire không rỗng/không chỉ tiền tố/đúng mẫu (trừ khi bằng giá trị gốc), Link đúng http(s) (trừ khi bằng giá trị gốc), tên, người giao, ngày giờ nhận (`Vui lòng chọn ngày giờ nhận`), tiến độ nguyên 0-100, và nếu trạng thái `yeu_cau_hoan_tat` thì tiến độ phải là 100% (`Chuyển sang <X> thì tiến độ phải là 100%`). Lỗi server bắt đầu bằng `Số Pwire đã tồn tại` / `Số Pwire phải bắt đầu` / `Link Pwire phải là` được gắn vào đúng ô; lỗi khác hiện khung đỏ cuối form. Payload gửi: `ma_task, ten, ngay_nhan, deadline|null, dev_hoan_thanh_thuc_te|null, nguoi_giao, ghi_chu, link_test_case, dev_cross_check` (+ `tien_do` số, `trang_thai` nếu `showProgress`); ngày giờ đổi `'T'→khoảng trắng`.
 
 ### 7.5 Khung ứng dụng (`App.jsx`) và các trang

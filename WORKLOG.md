@@ -2,6 +2,11 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Lịch sử thay đổi: thêm cột "Người thay đổi"
+
+- DB: cột `task_history.nguoi_thay_doi` (migration `ALTER TABLE`). Backend: `actorStorage` (AsyncLocalStorage) đặt theo yêu cầu, `addHistory` và hai câu `INSERT … SELECT` (đổi tên trạng thái/Dev) ghi tên đăng nhập. API history trả thêm `nguoi_thay_doi`. Giao diện: cột "Người thay đổi" (UserChip) ở `TaskHistory`.
+- Dòng lịch sử cũ không có người (hiện `—`).
+
 ## 2026-11-25 — Sửa múi giờ container (UTC → Asia/Ho_Chi_Minh)
 
 - Phát hiện khi test đầy đủ trên task.mtdd.io.vn: task tạo lúc 02:01 giờ Việt Nam bị ghi `19:02` (ngày hôm trước) vì container chạy UTC.

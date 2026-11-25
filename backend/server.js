@@ -87,6 +87,8 @@ function parseTaskQuery(req) {
 
 app.use('/api/auth', authRouter);
 app.use('/api', requireLogin, enforcePasswordChange, enforceRoles);
+// Mọi thay đổi ghi vào nhật ký sẽ mang tên người đăng nhập (xem actorStorage trong db.js)
+app.use('/api', (req, res, next) => store.actorStorage.run(req.user.ten_dang_nhap, next));
 app.use('/api/users', usersRouter);
 
 // ===== Task =====

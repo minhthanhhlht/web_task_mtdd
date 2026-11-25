@@ -1,5 +1,6 @@
 // Lớp database: mở SQLite, tạo bảng, nạp dữ liệu mặc định, migration và mọi hàm truy vấn/ghi dữ liệu.
 import Database from 'better-sqlite3';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -48,6 +49,14 @@ const FIELD_LABELS = {
   tien_do: ['Tiến độ', 'tien_do'], trang_thai: ['Trạng thái', 'tien_do'], ghi_chu: ['Ghi chú', 'tien_do'],
 };
 
+// ===== Người thực hiện thay đổi =====
+
+// Tên đăng nhập của người đang gọi API; server đặt qua actorStorage.run() cho mỗi yêu cầu, lệnh chạy tay (seed, backup) thì là null
+export const actorStorage = new AsyncLocalStorage();
+function currentActor() {
+  return actorStorage.getStore() ?? null;
+}
+
 // ===== Lỗi nghiệp vụ =====
 
 // Lỗi dữ liệu sai → server trả 400
@@ -85,6 +94,7 @@ addColumnIfMissing('tasks', 'dev_hoan_thanh_thuc_te', 'TEXT');
 addColumnIfMissing('tasks', 'nguoi_tao_id', 'INTEGER REFERENCES users(id) ON DELETE SET NULL');
 addColumnIfMissing('users', 'vai_tro', "TEXT NOT NULL DEFAULT 'user'");
 addColumnIfMissing('users', 'bat_buoc_doi_mat_khau', 'INTEGER NOT NULL DEFAULT 0');
+addColumnIfMissing('task_history', 'nguoi_thay_doi', 'TEXT');
 // DB cũ chưa có admin nào: tài khoản id nhỏ nhất thành admin
 if (!db.prepare("SELECT 1 FROM users WHERE vai_tro = 'admin'").get()) {
   db.exec("UPDATE users SET vai_tro = 'admin' WHERE id = (SELECT MIN(id) FROM users)");
@@ -145,8 +155,8 @@ function findStatus(name) {
 
 // Ghi một dòng nhật ký thay đổi (gọi trong transaction của thao tác chính)
 function addHistory(taskId, type, field, oldValue, newValue, description) {
-  db.prepare('INSERT INTO task_history (task_id, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta) VALUES (?, ?, ?, ?, ?, ?)')
-    .run(taskId, type, field, oldValue, newValue, description);
+  db.prepare('INSERT INTO task_history (task_id, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta, nguoi_thay_doi) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(taskId, type, field, oldValue, newValue, description, currentActor());
 }
 
 // Rút gọn chuỗi cho nhật ký
@@ -280,7 +290,7 @@ function getTaskWithCounts(id) {
 // Nhật ký thay đổi của task, mới nhất trước
 export function getTaskHistory(taskId, page, limit) {
   const total = db.prepare('SELECT COUNT(*) AS n FROM task_history WHERE task_id = ?').get(taskId).n;
-  const items = db.prepare('SELECT id, thoi_gian, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta FROM task_history WHERE task_id = ? ORDER BY id DESC LIMIT ? OFFSET ?')
+  const items = db.prepare('SELECT id, thoi_gian, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta, nguoi_thay_doi FROM task_history WHERE task_id = ? ORDER BY id DESC LIMIT ? OFFSET ?')
     .all(taskId, limit, (page - 1) * limit);
   return { items, total };
 }
@@ -627,9 +637,9 @@ export const updateStatus = db.transaction((id, body) => {
   next.yeu_cau_hoan_tat = optionalFlag(body.yeu_cau_hoan_tat, 'yeu_cau_hoan_tat', status.yeu_cau_hoan_tat);
   if (next.ten !== status.ten) {
     // Ghi nhật ký cho task bị ảnh hưởng trước khi đổi tên
-    db.prepare(`INSERT INTO task_history (task_id, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta)
-      SELECT id, 'tien_do', 'Trạng thái', trang_thai, ?, 'Trạng thái: ' || trang_thai || ' → ' || ? FROM tasks WHERE trang_thai = ? COLLATE NOCASE`)
-      .run(next.ten, next.ten, status.ten);
+    db.prepare(`INSERT INTO task_history (task_id, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta, nguoi_thay_doi)
+      SELECT id, 'tien_do', 'Trạng thái', trang_thai, ?, 'Trạng thái: ' || trang_thai || ' → ' || ?, ? FROM tasks WHERE trang_thai = ? COLLATE NOCASE`)
+      .run(next.ten, next.ten, currentActor(), status.ten);
     db.prepare('UPDATE tasks SET trang_thai = ? WHERE trang_thai = ? COLLATE NOCASE').run(next.ten, status.ten);
     db.prepare('UPDATE progress_log SET trang_thai = ? WHERE trang_thai = ? COLLATE NOCASE').run(next.ten, status.ten);
   }
@@ -725,9 +735,9 @@ export const updateDataItem = db.transaction((id, body) => {
   if (clash && clash.id !== id) throw invalid('Tên đã tồn tại trong nhóm');
   if (group.taskColumn && name !== item.ten) {
     const label = FIELD_LABELS[group.taskColumn][0];
-    db.prepare(`INSERT INTO task_history (task_id, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta)
-      SELECT id, 'task', ?, ?, ?, ? || ': ' || ? || ' → ' || ? FROM tasks WHERE ${group.taskColumn} = ? COLLATE NOCASE`)
-      .run(label, item.ten, name, label, item.ten, name, item.ten);
+    db.prepare(`INSERT INTO task_history (task_id, loai, truong, gia_tri_cu, gia_tri_moi, mo_ta, nguoi_thay_doi)
+      SELECT id, 'task', ?, ?, ?, ? || ': ' || ? || ' → ' || ?, ? FROM tasks WHERE ${group.taskColumn} = ? COLLATE NOCASE`)
+      .run(label, item.ten, name, label, item.ten, name, currentActor(), item.ten);
     db.prepare(`UPDATE tasks SET ${group.taskColumn} = ? WHERE ${group.taskColumn} = ? COLLATE NOCASE`).run(name, item.ten);
   }
   db.prepare('UPDATE data_items SET ten = ? WHERE id = ?').run(name, id);

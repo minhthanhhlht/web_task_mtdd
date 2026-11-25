@@ -4,6 +4,7 @@ import { getTaskHistory } from '../api.js';
 import { formatDateTime, TABLE_BORDER_CLASS } from '../constants.js';
 import usePageSize from '../usePageSize.js';
 import Pagination from './Pagination.jsx';
+import UserChip from './UserChip.jsx';
 import { ErrorBox, Loading } from './StateMessage.jsx';
 
 // Nhãn màu của từng nhóm nhật ký
@@ -39,7 +40,7 @@ export default function TaskHistory({ taskId, reloadKey }) {
       <div className="overflow-x-auto">
         <table className={`w-full text-sm ${TABLE_BORDER_CLASS}`}>
           <thead className="bg-surface-hover text-left">
-            <tr><th className="px-3 py-1.5">Thời gian</th><th className="px-3 py-1.5">Nhóm</th><th className="px-3 py-1.5">Nội dung thay đổi</th></tr>
+            <tr><th className="px-3 py-1.5">Thời gian</th><th className="px-3 py-1.5">Người thay đổi</th><th className="px-3 py-1.5">Nhóm</th><th className="px-3 py-1.5">Nội dung thay đổi</th></tr>
           </thead>
           <tbody>
             {data.items.map((item) => {
@@ -47,6 +48,7 @@ export default function TaskHistory({ taskId, reloadKey }) {
               return (
                 <tr key={item.id}>
                   <td className="whitespace-nowrap px-3 py-1.5">{formatDateTime(item.thoi_gian)}</td>
+                  <td className="whitespace-nowrap px-3 py-1.5">{item.nguoi_thay_doi ? <UserChip name={item.nguoi_thay_doi} className="max-w-32" /> : '—'}</td>
                   <td className="px-3 py-1.5"><span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ring-black/5 ${className}`}>{label}</span></td>
                   <td className="px-3 py-1.5 break-words">{item.mo_ta}</td>
                 </tr>

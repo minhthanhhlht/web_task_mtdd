@@ -85,7 +85,8 @@ CREATE TABLE IF NOT EXISTS task_history (
   thoi_gian TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   loai TEXT NOT NULL CHECK (loai IN ('task','tien_do','checklist','van_de')),
   truong TEXT, gia_tri_cu TEXT, gia_tri_moi TEXT,
-  mo_ta TEXT NOT NULL
+  mo_ta TEXT NOT NULL,
+  nguoi_thay_doi TEXT                           -- tên đăng nhập người thực hiện (chụp lại lúc ghi); NULL nếu không rõ
 );
 
 -- Tài khoản đăng nhập
