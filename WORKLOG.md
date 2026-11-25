@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Hiện đủ ngày tháng năm giờ phút giây
+
+- `formatDateTime` cắt 19 ký tự (có giây); cột Deadline/Cập nhật ở danh sách hiện `dd/mm/yyyy HH:mm:ss`; nhãn "Đã cập nhật lúc" có giây. Cập nhật PROJECT_SPEC mục 7.6.
+
 ## 2026-11-25 — Lịch sử thay đổi: thêm cột "Người thay đổi"
 
 - DB: cột `task_history.nguoi_thay_doi` (migration `ALTER TABLE`). Backend: `actorStorage` (AsyncLocalStorage) đặt theo yêu cầu, `addHistory` và hai câu `INSERT … SELECT` (đổi tên trạng thái/Dev) ghi tên đăng nhập. API history trả thêm `nguoi_thay_doi`. Giao diện: cột "Người thay đổi" (UserChip) ở `TaskHistory`.

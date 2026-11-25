@@ -88,5 +88,5 @@ export function fromInputDateTime(value) {
 
 // Hiển thị ngày giờ gọn: bỏ giây
 export function formatDateTime(value) {
-  return value ? String(value).slice(0, 16) : '—';
+  return value ? String(value).slice(0, 19) : '—';
 }

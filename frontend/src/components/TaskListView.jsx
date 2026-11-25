@@ -18,10 +18,10 @@ import StatusBadge from './StatusBadge.jsx';
 import { useStatuses } from './StatusContext.jsx';
 import { useToast } from './Toast.jsx';
 
-// Rút gọn ngày giờ cho cột hẹp: "2026-11-25 00:25" → "25/11 00:25"
+// Đổi "2026-11-25 00:25:07" → "25/11/2026 00:25:07" (đủ ngày tháng năm, giờ phút giây nếu có)
 function shortDateTime(value) {
   const text = String(value ?? '');
-  return text.length >= 16 ? `${text.slice(8, 10)}/${text.slice(5, 7)} ${text.slice(11, 16)}` : text;
+  return text.length >= 16 ? `${text.slice(8, 10)}/${text.slice(5, 7)}/${text.slice(0, 4)} ${text.slice(11, 19)}` : text;
 }
 
 // Màu hạn chót theo mức độ: quá hạn đỏ, hôm nay/ngày mai cam, còn lại giữ nguyên
@@ -160,7 +160,7 @@ export default function TaskListView({ archived }) {
                   {!archived && (
                     <td className="whitespace-nowrap px-1.5 py-1.5">
                       <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${REPORT_LEVEL_CLASS[rs.level]}`}>
-                        {rs.updatedToday ? shortDateTime(rs.updatedAt ?? task.ngay_cap_nhat_cuoi) : rs.level === 'pending' ? 'Chưa cập nhật' : rs.label}
+                        {rs.updatedToday ? shortDateTime(rs.updatedAtFull ?? task.ngay_cap_nhat_cuoi) : rs.level === 'pending' ? 'Chưa cập nhật' : rs.label}
                       </span>
                       {!rs.updatedToday && <button type="button" className={`ml-2 ${BUTTON_SMALL}`} onClick={(e) => confirmUnchanged(e, task)}>Không đổi</button>}
                     </td>

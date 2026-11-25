@@ -35,7 +35,7 @@ export function getReportStatus(task, now = new Date()) {
     if (!task.gio_cap_nhat_cuoi) return { level: 'unknown_time', label: `Đã cập nhật ${shortDate(today)} (chưa có giờ)`, updatedToday: true };
     const updatedAt = String(task.gio_cap_nhat_cuoi).slice(0, 16);
     const level = updatedAt.slice(11, 16) < REPORT_CUTOFF_TIME ? 'early' : 'after';
-    return { level, label: `Đã cập nhật lúc ${updatedAt}`, updatedToday: true, updatedAt };
+    return { level, label: `Đã cập nhật lúc ${String(task.gio_cap_nhat_cuoi).slice(0, 19)}`, updatedToday: true, updatedAt, updatedAtFull: String(task.gio_cap_nhat_cuoi).slice(0, 19) };
   }
   const createdBeforeToday = String(task.tao_luc ?? '').slice(0, 10) < today;
   const yesterday = toDateKey(new Date(now.getTime() - 86400000));
