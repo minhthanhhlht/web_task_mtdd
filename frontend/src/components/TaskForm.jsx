@@ -18,7 +18,9 @@ function Field({ label, name, error, children }) {
   const id = `task-${name}`;
   return (
     <div>
-      <label htmlFor={id} className="mb-1 block text-sm font-medium">{label}</label>
+      <label htmlFor={id} className="mb-1 block text-sm font-medium">
+        {label.endsWith(' *') ? <>{label.slice(0, -2)} <span className="text-error-strong" aria-hidden="true">*</span></> : label}
+      </label>
       {cloneElement(control, { id, name })}
       {rest}
       <FieldError message={error} />

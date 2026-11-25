@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Dấu * bắt buộc màu đỏ
+
+- `TaskForm.jsx`: dấu `*` ở nhãn Số Pwire, Tên task, Ngày giờ nhận, Người giao tách thành span `text-error-strong` (token lỗi), không đổi hành vi.
+
 ## 2026-11-25 — Mật khẩu admin đặt cho tài khoản mới tối thiểu 4 ký tự
 
 - `validatePassword(password, minLength = 8)`; tạo tài khoản và đặt lại mật khẩu (admin) dùng 4. Đổi mật khẩu của người dùng, `.env`, `create-user.js` vẫn 8. Hộp đặt lại mật khẩu ở giao diện kiểm tra 4.
