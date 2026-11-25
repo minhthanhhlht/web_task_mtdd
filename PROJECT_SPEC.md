@@ -152,7 +152,9 @@ CREATE TABLE IF NOT EXISTS tasks (
   dev_cross_check TEXT NOT NULL DEFAULT '',    -- tên Dev (nhóm Dev ở data_items) hoặc ''
   tao_luc TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   cap_nhat_luc TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-  nguoi_tao_id INTEGER REFERENCES users(id) ON DELETE SET NULL   -- PIC / chủ sở hữu; NULL = chỉ admin thấy
+  nguoi_tao_id INTEGER REFERENCES users(id) ON DELETE SET NULL,  -- PIC / chủ sở hữu; NULL = chỉ admin thấy
+  xoa_luc TEXT,                                -- xóa mềm: giờ xóa; NULL = task còn hoạt động
+  nguoi_xoa TEXT                               -- tên đăng nhập người xóa (chụp lại lúc xóa)
 );
 
 CREATE TABLE IF NOT EXISTS checklist_items (
@@ -255,7 +257,7 @@ CREATE INDEX IF NOT EXISTS idx_task_history_task ON task_history(task_id, id);
 
 - Ngày giờ lưu `YYYY-MM-DD HH:mm` (giờ local); thời điểm hệ thống ghi dùng `datetime('now','localtime')`.
 - Task mới: trạng thái = trạng thái đầu tiên theo `thu_tu`; `tien_do = 0`; sao chép các mục của `checklist_templates` thành `checklist_items` (chưa tick) trong **cùng transaction**; ghi nhật ký "Tạo task".
-- Xóa task xóa theo checklist, vấn đề, progress_log, task_history (ON DELETE CASCADE).
+- **Xóa task là xóa mềm:** `DELETE /api/tasks/:id` chỉ đặt `xoa_luc` (giờ hiện tại) và `nguoi_xoa` (tên đăng nhập), ghi nhật ký `Xóa task`; checklist, vấn đề, `progress_log`, `task_history` giữ nguyên. Task đã xóa **không xuất hiện** ở danh sách, checklist, CSV, mẫu checklist (áp dụng), cập nhật tiến độ, và mọi API theo id (chi tiết, sửa, lịch sử, checklist, vấn đề, `/api/eod`, chuyển PIC) trả 404 như không tồn tại. Kiểm tra trùng Số Pwire chỉ tính task chưa xóa (tạo lại cùng Số Pwire được). Trạng thái và Dev đang được task đã xóa dùng vẫn bị coi là đang dùng (không xóa được) để khôi phục không bị mồ côi. Khôi phục xem 6.9.
 - `EDITABLE_TASK_COLUMNS` (whitelist cho PUT): `ma_task, ten, ngay_nhan, deadline, nguoi_giao, tien_do, trang_thai, ghi_chu, link_test_case, dev_cross_check, dev_hoan_thanh_thuc_te`. **Không** có `nguoi_tao_id`.
 
 ---
@@ -295,6 +297,7 @@ Khi chuyển task sang trạng thái có `yeu_cau_hoan_tat = 1` (mặc định `
 - **Ép đổi mật khẩu (`enforcePasswordChange`, chạy ngay sau `requireLogin`, trước `enforceRoles`):** nếu `req.user.bat_buoc_doi_mat_khau = 1` thì **mọi** API dưới `/api` đều trả **403** `Bạn cần đổi mật khẩu trước khi tiếp tục`, **trừ** `POST /api/auth/password` (và các API `/api/auth/*` công khai: `me`, `logout`). Chặn ở backend, không chỉ ở giao diện.
 - `ADMIN_ONLY_RULES` (một bảng duy nhất trong `auth.js`, `enforceRoles` trả 403 `Bạn không có quyền thực hiện thao tác này (cần quản trị viên)`):
   - `PUT /tasks/:id/owner`
+  - mọi method `/deleted-tasks…`
   - `POST|PUT|DELETE /statuses…`
   - `POST|PUT|DELETE /data-items…`
   - `PUT /checklist-templates` và `POST /checklist-templates/apply`
@@ -390,6 +393,11 @@ Quy tắc: tên đăng nhập `/^[A-Za-z0-9._-]{3,50}$/` (lỗi: `Tên đăng nh
 - **`POST /api/eod`** `{ items: [{ task_id, tien_do, trang_thai, ghi_chu? }] }` (mảng không rỗng; `task_id` nguyên dương, không lặp; `tien_do` 0–100; `trang_thai` hợp lệ). **`ghi_chu` không gửi (undefined) ⇒ giữ nguyên ghi chú hiện tại** (quan trọng: ghi chú HTML/ảnh không đi qua đây); có gửi thì `sanitizeNote` + ≤ 8M. Mọi task phải thuộc quyền người gọi (assertTaskAccess, kiểm tra trước khi lưu). Trong **một transaction** (lỗi nào cũng hoàn tác hết): kiểm tra luật 5.2, cập nhật task (`cap_nhat_luc`), **upsert `progress_log` hôm nay** (`UNIQUE(task_id, ngay)`), ghi nhật ký từng trường đổi trong `tien_do, trang_thai, ghi_chu` (nhóm `tien_do`); nếu không trường nào đổi ghi một dòng `Xác nhận không đổi (tiến độ X%, trạng thái Y)`. Trả `{ saved: N }`.
 - **`GET /api/export`**: CSV UTF-8 có **BOM**, CRLF, mọi ô bọc `"…"` (nháy kép nhân đôi), ô bắt đầu bằng `= + - @ \t \r` thêm `'` phía trước (chống công thức Excel). Cột theo thứ tự: `ma_task, ten, ngay_nhan, deadline, dev_hoan_thanh_thuc_te, nguoi_giao, dev_cross_check, tien_do, trang_thai, ghi_chu` (chữ thuần), `link_test_case, checklist_da_xong, checklist_tong, tao_luc, cap_nhat_luc`. Header `Content-Disposition: attachment; filename="tasks_<YYYY-MM-DD>.csv"`. User thường chỉ xuất task của mình.
 
+### 6.9 Task đã xóa (chỉ admin; `/api/deleted-tasks…` nằm trong `ADMIN_ONLY_RULES`, user thường 403)
+
+- `GET /api/deleted-tasks` — query `q`, `page`, `limit`, `sort`, `dir` (khóa sort như `GET /api/tasks`, thêm `xoa_luc`, `nguoi_xoa`; mặc định `xoa_luc` giảm dần). Trả `{ items, total }` như danh sách task, kèm `xoa_luc`, `nguoi_xoa`.
+- `POST /api/deleted-tasks/:id/restore` — đặt `xoa_luc`/`nguoi_xoa` về NULL, cập nhật `cap_nhat_luc`, ghi nhật ký `Khôi phục task`, trả task. Task không tồn tại hoặc chưa xóa → 404 `Không tìm thấy task đã xóa`; PIC của task đã có task khác (chưa xóa) cùng Số Pwire → 400 `Không thể khôi phục: đã có task khác cùng Số Pwire`.
+
 ### 6.7 Nhật ký thay đổi (`task_history`)
 
 Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị thực sự đổi. Mỗi dòng ghi thêm **người thay đổi** = tên đăng nhập của người gọi API (middleware đặt `AsyncLocalStorage` sau `enforceRoles`, `addHistory` và các câu `INSERT … SELECT` đổi tên trạng thái/Dev đọc từ đó); lệnh chạy tay (seed, backup) thì `NULL`. Là bản chụp lúc ghi, đổi hay xóa tài khoản sau đó không đổi dòng cũ. `ALTER TABLE` thêm cột cho DB cũ (dòng cũ `NULL`, giao diện hiện `—`). `loai`: `task` (thông tin), `tien_do`, `checklist`, `van_de`.
@@ -463,6 +471,7 @@ Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị th�
 | `/trang-thai` | Quản lý trạng thái | tag | **chỉ admin** |
 | `/quan-ly-data` | Quản lý data | database | **chỉ admin** |
 | `/archive` | Đã hoàn thành | archive | |
+| `/da-xoa` | Task đã xóa | trash | **chỉ admin** |
 | `/tai-khoan` | Tài khoản | users | |
 
 Cuối sidebar: nút "Xuất CSV" (icon download, thẻ `<a href=EXPORT_URL>`), tên tài khoản + "admin" nếu là admin, nút "Đăng xuất". Thanh trên có nút `☰` ẩn/hiện sidebar. **Responsive:** dưới 1024px (`matchMedia('(max-width: 1023px)')`) sidebar mặc định ẩn, khi mở thì `fixed inset-y-0 z-30 shadow-xl` có nền mờ `bg-black/30` (bấm nền hoặc chọn mục thì đóng); qua ngưỡng thì tự ẩn/hiện. Vùng nội dung `main` `px-6 py-6`, **full chiều ngang cho mọi trang** (không `max-w`). Route lạ → "Không tìm thấy trang."; trang admin bọc `RequireAdmin` (user thường thấy thông báo không có quyền).
@@ -484,6 +493,8 @@ Màn hình hẹp (`< xl`) xếp dọc theo thứ tự ①②③④. Mọi thao t
 **Checklist `/checklist`:** hai tab.
 - Tab **"Mẫu checklist"** (**chỉ admin**, mặc định mở với admin): `ChecklistTemplateEditor` (thêm mục, sửa tên, ↑ ↓ đổi thứ tự, xóa có xác nhận, nút Lưu / Hoàn tác; báo mẫu còn sửa dở lên trang cha để **khóa nút Áp dụng mẫu**) và khối "Áp dụng mẫu cho task đã có": radio `Tất cả task chưa hoàn thành` / `Chọn task cụ thể` (TaskPicker) + nút **Áp dụng mẫu (ghi đè)** → `dialog.confirm` kiểu `danger` ("GHI ĐÈ checklist của … bằng mẫu hiện tại? Mục không có trong mẫu sẽ bị XÓA, … Không thể hoàn tác.", nút `Ghi đè`) → toast kết quả ("Đã ghi đè checklist của X/Y task (thêm a, xóa b mục)" hoặc "Không có gì thay đổi…", kèm "(bỏ qua N task đã hoàn thành)").
 - Tab **"Tổng hợp theo task"** (mặc định với user thường): bảng/thẻ từng task với các mục checklist (tick được từng mục, "Chọn tất cả" từng task), lọc trạng thái, tìm, chuyển danh sách đang xử lý / đã hoàn thành, phân trang; lưới 1 cột trên màn hình hẹp, 2 cột từ `lg`.
+
+**Task đã xóa `/da-xoa`** (admin, `RequireAdmin`; `DeletedTasks.jsx`): tiêu đề, dòng mô tả "Task bị xóa vẫn được giữ lại. Chỉ quản trị viên khôi phục được.", ô tìm (debounce 300 ms), bảng cột `PIC | Số Pwire | Tên | Trạng thái | Tiến độ | Xóa lúc | Người xóa | (Khôi phục)` (tiêu đề cột bấm sắp xếp, mặc định `Xóa lúc` giảm dần), nút `Khôi phục` (`BUTTON_SMALL`) → `dialog.confirm` → `POST restore` → toast `Đã khôi phục task <Số Pwire>` + tải lại; lỗi hiện toast. Rỗng: "Chưa có task nào bị xóa.". Phân trang như danh sách task. Hộp xác nhận xóa ở trang chi tiết ghi rõ task được chuyển vào mục Task đã xóa.
 
 **Quản lý trạng thái `/trang-thai`** (admin): form thêm (tên, select màu, checkbox `Hoàn thành`, checkbox `Yêu cầu 100% + checklist`, nhãn "Xem trước") và bảng `# | Tên trạng thái | Màu | (xem trước) | Hoàn thành | Yêu cầu 100% + checklist | Số task | thao tác`: sửa tên (rời ô/Enter lưu, Esc hủy; đổi tên trạng thái đang có task dùng → `dialog.confirm` nêu số task), đổi màu, bật/tắt hai cờ, ↑ ↓, Xóa (nút khóa + chú thích số task nếu đang dùng; `dialog.confirm` danger). Phân trang phía trình duyệt (API trả hết); ↑ ↓ tính trên toàn danh sách. Sau mỗi thay đổi gọi `StatusContext.reload()`.
 

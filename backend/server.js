@@ -151,7 +151,27 @@ app.delete('/api/tasks/:id', handle((req, res) => {
   res.status(204).end();
 }));
 
+// ===== Task đã xóa (chỉ admin, chặn ở enforceRoles) =====
+
+app.get('/api/deleted-tasks', handle((req, res) => {
+  const options = { ...parseTaskQuery(req), deleted: true, sort: 'xoa_luc', dir: 'desc' };
+  if (req.query.sort !== undefined) {
+    if (!store.isValidSort(req.query.sort)) throw bad('sort không hợp lệ');
+    options.sort = req.query.sort;
+  }
+  if (req.query.dir !== undefined) {
+    if (!['asc', 'desc'].includes(req.query.dir)) throw bad('dir phải là asc hoặc desc');
+    options.dir = req.query.dir;
+  }
+  res.json(store.listTasks(options));
+}));
+
+app.post('/api/deleted-tasks/:id/restore', handle((req, res) => {
+  res.json(store.restoreTask(parseId(req.params.id)));
+}));
+
 // ===== Checklist và vấn đề =====
+
 
 app.put('/api/checklist/:id', handle((req, res) => {
   const id = parseId(req.params.id);

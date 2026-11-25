@@ -52,6 +52,8 @@ export const getTask = (id) => request('GET', `/api/tasks/${id}`);
 export const updateTask = (id, body) => request('PUT', `/api/tasks/${id}`, body);
 export const deleteTask = (id) => request('DELETE', `/api/tasks/${id}`);
 export const getTaskHistory = (id, { page = 1, limit = 50 } = {}) => request('GET', `/api/tasks/${id}/history?page=${page}&limit=${limit}`);
+export const listDeletedTasks = (params) => request('GET', `/api/deleted-tasks${buildQuery(params)}`);
+export const restoreDeletedTask = (id) => request('POST', `/api/deleted-tasks/${id}/restore`);
 export const transferTask = (id, userId) => request('PUT', `/api/tasks/${id}/owner`, { user_id: userId });
 export const saveEod = (items) => request('POST', '/api/eod', { items });
 

@@ -95,6 +95,8 @@ addColumnIfMissing('tasks', 'nguoi_tao_id', 'INTEGER REFERENCES users(id) ON DEL
 addColumnIfMissing('users', 'vai_tro', "TEXT NOT NULL DEFAULT 'user'");
 addColumnIfMissing('users', 'bat_buoc_doi_mat_khau', 'INTEGER NOT NULL DEFAULT 0');
 addColumnIfMissing('task_history', 'nguoi_thay_doi', 'TEXT');
+addColumnIfMissing('tasks', 'xoa_luc', 'TEXT');
+addColumnIfMissing('tasks', 'nguoi_xoa', 'TEXT');
 // DB cũ chưa có admin nào: tài khoản id nhỏ nhất thành admin
 if (!db.prepare("SELECT 1 FROM users WHERE vai_tro = 'admin'").get()) {
   db.exec("UPDATE users SET vai_tro = 'admin' WHERE id = (SELECT MIN(id) FROM users)");
@@ -198,6 +200,8 @@ const SORT_EXPRESSIONS = {
   trang_thai: ['(SELECT thu_tu FROM task_statuses s WHERE s.ten = trang_thai)'],
   checklist: ['(checklist_da_xong * 1.0 / NULLIF(checklist_tong, 0))'],
   cap_nhat: ['gio_cap_nhat_cuoi'],
+  xoa_luc: ['xoa_luc'],
+  nguoi_xoa: ['nguoi_xoa COLLATE NOCASE'],
 };
 
 // Chuẩn hóa một dòng task trả về danh sách: ghi chú HTML đổi thành chữ thuần ngắn
@@ -207,11 +211,17 @@ function toListItem(row) {
 }
 
 // Dựng mệnh đề WHERE + tham số dùng chung cho danh sách task, checklist và xuất CSV
-function buildTaskFilter({ ownerId, status, q, archived, notUpdated }) {
+function buildTaskFilter({ ownerId, status, q, archived, notUpdated, deleted }) {
   const where = [];
   const params = [];
   const completed = 'SELECT ten FROM task_statuses WHERE la_hoan_thanh = 1';
-  where.push(archived ? `t.trang_thai IN (${completed})` : `t.trang_thai NOT IN (${completed})`);
+  if (deleted) {
+    // Trang "Task đã xóa": chỉ task xóa mềm, không phân biệt hoàn thành hay chưa
+    where.push('t.xoa_luc IS NOT NULL');
+  } else {
+    where.push('t.xoa_luc IS NULL');
+    where.push(archived ? `t.trang_thai IN (${completed})` : `t.trang_thai NOT IN (${completed})`);
+  }
   if (ownerId !== undefined) { where.push('t.nguoi_tao_id = ?'); params.push(ownerId); }
   if (status) { where.push('t.trang_thai = ? COLLATE NOCASE'); params.push(status); }
   if (notUpdated) where.push("NOT EXISTS (SELECT 1 FROM progress_log p WHERE p.task_id = t.id AND p.ngay = date('now','localtime'))");
@@ -257,7 +267,7 @@ export function listChecklists(options) {
 
 // Lấy chủ sở hữu của một task (dùng cho kiểm tra quyền); undefined nếu không tồn tại
 export function getTaskOwnerInfo(taskId) {
-  return db.prepare('SELECT id, nguoi_tao_id FROM tasks WHERE id = ?').get(taskId);
+  return db.prepare('SELECT id, nguoi_tao_id FROM tasks WHERE id = ? AND xoa_luc IS NULL').get(taskId);
 }
 
 // Lấy task của một mục checklist / vấn đề
@@ -270,7 +280,7 @@ export function getIssueTaskId(issueId) {
 
 // Chi tiết một task đầy đủ (ghi chú HTML đầy đủ, checklist, vấn đề, tiến độ)
 export function getTask(id) {
-  const task = db.prepare(`${TASK_SELECT} WHERE t.id = ?`).get(id);
+  const task = db.prepare(`${TASK_SELECT} WHERE t.id = ? AND t.xoa_luc IS NULL`).get(id);
   if (!task) throw notFound('Không tìm thấy task');
   return {
     ...task,
@@ -313,7 +323,7 @@ function normalizeTaskInput(body, existing, ownerId) {
     // Tạo mới luôn kiểm tra định dạng; sửa chỉ kiểm tra khi giá trị bị đổi
     if (isCreate || code !== existing.ma_task) {
       if (!TASK_CODE_PATTERN.test(code)) throw invalid('Số Pwire phải bắt đầu bằng PP000017- và sau dấu - chỉ gồm chữ số, ví dụ PP000017-205779');
-      const duplicate = db.prepare('SELECT 1 FROM tasks WHERE ma_task = ? COLLATE NOCASE AND nguoi_tao_id IS ? AND id <> ?')
+      const duplicate = db.prepare('SELECT 1 FROM tasks WHERE ma_task = ? COLLATE NOCASE AND nguoi_tao_id IS ? AND id <> ? AND xoa_luc IS NULL')
         .get(code, ownerId, existing?.id ?? 0);
       if (duplicate) throw invalid('Số Pwire đã tồn tại');
     }
@@ -410,7 +420,7 @@ export const createTask = db.transaction((body, ownerId) => {
 
 // Sửa task: kiểm tra, luật hoàn tất, cập nhật, nhật ký, tiến độ hôm nay (một transaction)
 export const updateTask = db.transaction((id, body) => {
-  const existing = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+  const existing = db.prepare('SELECT * FROM tasks WHERE id = ? AND xoa_luc IS NULL').get(id);
   if (!existing) throw notFound('Không tìm thấy task');
   const data = normalizeTaskInput(Object.fromEntries(Object.entries(body).filter(([k]) => EDITABLE_TASK_COLUMNS.includes(k))), existing, existing.nguoi_tao_id);
   if (Object.keys(data).length === 0) throw invalid('Không có trường nào để sửa');
@@ -438,19 +448,33 @@ export const updateTask = db.transaction((id, body) => {
   return getTaskWithCounts(id);
 });
 
-// Xóa task (checklist, vấn đề, tiến độ, nhật ký xóa theo ON DELETE CASCADE)
-export function deleteTask(id) {
-  if (db.prepare('DELETE FROM tasks WHERE id = ?').run(id).changes === 0) throw notFound('Không tìm thấy task');
-}
+// Xóa mềm task: giữ nguyên dữ liệu, chỉ đánh dấu giờ xóa và người xóa (admin khôi phục được ở trang Task đã xóa)
+export const deleteTask = db.transaction((id) => {
+  if (!db.prepare('SELECT 1 FROM tasks WHERE id = ? AND xoa_luc IS NULL').get(id)) throw notFound('Không tìm thấy task');
+  db.prepare("UPDATE tasks SET xoa_luc = datetime('now','localtime'), nguoi_xoa = ? WHERE id = ?").run(currentActor(), id);
+  addHistory(id, 'task', null, null, null, 'Xóa task');
+});
+
+// Khôi phục task đã xóa mềm (chỉ admin gọi); không khôi phục nếu PIC đã có task khác cùng Số Pwire
+export const restoreTask = db.transaction((id) => {
+  const task = db.prepare('SELECT * FROM tasks WHERE id = ? AND xoa_luc IS NOT NULL').get(id);
+  if (!task) throw notFound('Không tìm thấy task đã xóa');
+  const duplicate = db.prepare('SELECT 1 FROM tasks WHERE ma_task = ? COLLATE NOCASE AND nguoi_tao_id IS ? AND id <> ? AND xoa_luc IS NULL')
+    .get(task.ma_task, task.nguoi_tao_id, id);
+  if (duplicate) throw invalid('Không thể khôi phục: đã có task khác cùng Số Pwire');
+  db.prepare("UPDATE tasks SET xoa_luc = NULL, nguoi_xoa = NULL, cap_nhat_luc = datetime('now','localtime') WHERE id = ?").run(id);
+  addHistory(id, 'task', null, null, null, 'Khôi phục task');
+  return getTaskWithCounts(id);
+});
 
 // Chuyển PIC (chủ sở hữu) của task sang tài khoản khác
 export const transferTask = db.transaction((id, newOwnerId) => {
-  const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+  const task = db.prepare('SELECT * FROM tasks WHERE id = ? AND xoa_luc IS NULL').get(id);
   if (!task) throw notFound('Không tìm thấy task');
   const target = Number.isSafeInteger(newOwnerId) ? db.prepare('SELECT id, ten_dang_nhap FROM users WHERE id = ?').get(newOwnerId) : undefined;
   if (!target) throw invalid('Tài khoản nhận task không tồn tại');
   if (task.nguoi_tao_id === target.id) throw invalid('Task đã thuộc tài khoản này');
-  const duplicate = db.prepare('SELECT 1 FROM tasks WHERE ma_task = ? COLLATE NOCASE AND nguoi_tao_id = ? AND id <> ?').get(task.ma_task, target.id, id);
+  const duplicate = db.prepare('SELECT 1 FROM tasks WHERE ma_task = ? COLLATE NOCASE AND nguoi_tao_id = ? AND id <> ? AND xoa_luc IS NULL').get(task.ma_task, target.id, id);
   if (duplicate) throw invalid(`${target.ten_dang_nhap} đã có task khác cùng Số Pwire này`);
   let oldName = '(chưa có PIC)';
   if (task.nguoi_tao_id !== null) oldName = db.prepare('SELECT ten_dang_nhap FROM users WHERE id = ?').get(task.nguoi_tao_id)?.ten_dang_nhap ?? '(đã xóa)';
@@ -558,14 +582,14 @@ export const applyTemplates = db.transaction((body) => {
   let ids;
   let skipped = 0; // số task đã hoàn thành bị bỏ qua khi chọn đích danh
   if (body.all === true) {
-    ids = db.prepare(`SELECT id FROM tasks WHERE trang_thai NOT IN (${completed})`).all().map((r) => r.id);
+    ids = db.prepare(`SELECT id FROM tasks WHERE xoa_luc IS NULL AND trang_thai NOT IN (${completed})`).all().map((r) => r.id);
   } else {
     const list = body.task_ids;
     if (!Array.isArray(list) || list.length === 0) throw invalid('Hãy chọn tất cả hoặc ít nhất một task');
     if (list.length > 5000) throw invalid('Tối đa 5000 task mỗi lần');
     const unique = [...new Set(list)];
     unique.forEach((id) => parsePositiveInt(id, 'task_ids phải là số nguyên dương'));
-    const found = db.prepare(`SELECT id, trang_thai FROM tasks WHERE id IN (${unique.map(() => '?').join(',')})`).all(...unique);
+    const found = db.prepare(`SELECT id, trang_thai FROM tasks WHERE xoa_luc IS NULL AND id IN (${unique.map(() => '?').join(',')})`).all(...unique);
     if (found.length !== unique.length) throw notFound('Có task không tồn tại');
     const doneNames = new Set(db.prepare(completed).all().map((r) => r.ten.toLowerCase()));
     ids = found.filter((t) => !doneNames.has(t.trang_thai.toLowerCase())).map((t) => t.id);
@@ -770,7 +794,7 @@ export const saveEod = db.transaction((items) => {
     seen.add(item.task_id);
   }
   for (const item of items) {
-    const task = db.prepare('SELECT * FROM tasks WHERE id = ?').get(item.task_id);
+    const task = db.prepare('SELECT * FROM tasks WHERE id = ? AND xoa_luc IS NULL').get(item.task_id);
     if (!task) throw notFound('Không tìm thấy task');
     const prefix = `Task ${task.ma_task}: `;
     if (!Number.isInteger(item.tien_do) || item.tien_do < 0 || item.tien_do > 100) throw invalid(`${prefix}tien_do phải là số nguyên từ 0 đến 100`);
@@ -802,7 +826,7 @@ export const saveEod = db.transaction((items) => {
 
 // Toàn bộ task (mọi trạng thái) để xuất CSV; ownerId undefined = tất cả
 export function listTasksForExport(ownerId) {
-  const where = ownerId === undefined ? '' : 'WHERE t.nguoi_tao_id = ?';
+  const where = ownerId === undefined ? 'WHERE t.xoa_luc IS NULL' : 'WHERE t.xoa_luc IS NULL AND t.nguoi_tao_id = ?';
   const params = ownerId === undefined ? [] : [ownerId];
   return db.prepare(`${TASK_SELECT} ${where} ORDER BY t.id`).all(...params);
 }

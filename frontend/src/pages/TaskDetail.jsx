@@ -76,7 +76,7 @@ export default function TaskDetail() {
 
   // Xóa task sau khi xác nhận
   const remove = async () => {
-    const ok = await dialog.confirm({ title: 'Xóa task', message: `Xóa task "${task.ten}"? Checklist, vấn đề và lịch sử sẽ bị xóa theo.`, confirmLabel: 'Xóa', danger: true });
+    const ok = await dialog.confirm({ title: 'Xóa task', message: `Xóa task "${task.ten}"? Task được chuyển vào mục "Task đã xóa", quản trị viên có thể khôi phục.`, confirmLabel: 'Xóa', danger: true });
     if (!ok) return;
     try {
       await deleteTask(task.id);

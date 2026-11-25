@@ -17,7 +17,9 @@ CREATE TABLE IF NOT EXISTS tasks (
   dev_cross_check TEXT NOT NULL DEFAULT '',    -- tên Dev (nhóm Dev ở data_items) hoặc ''
   tao_luc TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   cap_nhat_luc TEXT NOT NULL DEFAULT (datetime('now','localtime')),
-  nguoi_tao_id INTEGER REFERENCES users(id) ON DELETE SET NULL   -- PIC / chủ sở hữu; NULL = chỉ admin thấy
+  nguoi_tao_id INTEGER REFERENCES users(id) ON DELETE SET NULL,  -- PIC / chủ sở hữu; NULL = chỉ admin thấy
+  xoa_luc TEXT,                                -- xóa mềm: giờ xóa; NULL = task còn hoạt động
+  nguoi_xoa TEXT                               -- tên đăng nhập người xóa (chụp lại lúc xóa)
 );
 
 -- Các mục checklist của từng task

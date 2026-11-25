@@ -2,6 +2,14 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Xóa mềm task + trang admin "Task đã xóa" (khôi phục)
+
+- DB: cột `tasks.xoa_luc`, `tasks.nguoi_xoa` (migration). `DELETE /api/tasks/:id` thành xóa mềm; task đã xóa bị loại khỏi danh sách, checklist, CSV, áp dụng mẫu, eod và mọi API theo id (404).
+- API admin: `GET /api/deleted-tasks`, `POST /api/deleted-tasks/:id/restore` (chặn nếu trùng Số Pwire với task đang hoạt động). Nhật ký ghi `Xóa task` / `Khôi phục task` kèm người thực hiện.
+- Giao diện: trang `/da-xoa` (menu "Task đã xóa", chỉ admin) theo khuôn bảng của danh sách task; sửa câu xác nhận xóa ở trang chi tiết.
+- Kiểm thử local (server tạm, 18 kiểm tra): user xóa/ẩn/403, admin xem/tìm/khôi phục, trùng Số Pwire, lịch sử.
+- Chưa làm: xóa vĩnh viễn (task đã xóa tích lũy mãi).
+
 ## 2026-11-25 — Đếm task chưa cập nhật ngay từ đầu ngày
 
 - `useReportSummary`: `total` luôn = mọi task chưa cập nhật hôm nay (trước đây trước 16:30 chỉ đếm task bỏ sót). Ảnh hưởng ô "Cần cập nhật tiến độ", chấm đỏ menu, thanh nhắc. Cập nhật PROJECT_SPEC mục 7.5.

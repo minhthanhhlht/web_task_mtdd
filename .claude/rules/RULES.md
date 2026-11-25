@@ -20,6 +20,7 @@
 - Lỗi trả về dạng `{ "error": "mô tả ngắn" }` với đúng mã 400/401/403/404/429/500; lỗi 500 chỉ log `error.code ?? error.name`, không lộ chi tiết, không ghi dữ liệu task vào log.
 - Phân trang/lọc/tìm/sắp xếp do **backend** làm.
 - Ghi chú task luôn qua `sanitizeNote` trước khi lưu.
+- Xóa task là **xóa mềm** (`xoa_luc`, `nguoi_xoa`); mọi truy vấn task mới phải lọc `xoa_luc IS NULL`, riêng trang Task đã xóa (chỉ admin) lọc ngược lại.
 - Phân quyền: user thường chỉ thấy task của mình; task không thuộc user trả **404**, không lộ việc tồn tại.
 - Server nghe `0.0.0.0:6021`, không đổi cổng/địa chỉ.
 - **Không bao giờ xóa `tasks.db`** để đổi cấu trúc; dùng migration an toàn (`PRAGMA user_version`).

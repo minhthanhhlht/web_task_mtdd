@@ -11,6 +11,7 @@ import Accounts from './pages/Accounts.jsx';
 import Archive from './pages/Archive.jsx';
 import Checklist from './pages/Checklist.jsx';
 import DataManager from './pages/DataManager.jsx';
+import DeletedTasks from './pages/DeletedTasks.jsx';
 import EndOfDay from './pages/EndOfDay.jsx';
 import StatusManager from './pages/StatusManager.jsx';
 import TaskDetail from './pages/TaskDetail.jsx';
@@ -45,6 +46,7 @@ export default function App() {
     ['/trang-thai', 'Quản lý trạng thái', 'tag', true],
     ['/quan-ly-data', 'Quản lý data', 'database', true],
     ['/archive', 'Đã hoàn thành', 'archive', false],
+    ['/da-xoa', 'Task đã xóa', 'trash', true],
     ['/tai-khoan', 'Tài khoản', 'users', false],
   ].filter((item) => !item[3] || isAdmin);
 
@@ -92,6 +94,7 @@ export default function App() {
             <Route path="/trang-thai" element={<RequireAdmin><StatusManager /></RequireAdmin>} />
             <Route path="/quan-ly-data" element={<RequireAdmin><DataManager /></RequireAdmin>} />
             <Route path="/archive" element={<Archive />} />
+            <Route path="/da-xoa" element={<RequireAdmin><DeletedTasks /></RequireAdmin>} />
             <Route path="/tai-khoan" element={<Accounts />} />
             <Route path="*" element={<p>Không tìm thấy trang.</p>} />
           </Routes>
