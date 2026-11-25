@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-25 — Mật khẩu admin đặt cho tài khoản mới tối thiểu 4 ký tự
+
+- `validatePassword(password, minLength = 8)`; tạo tài khoản và đặt lại mật khẩu (admin) dùng 4. Đổi mật khẩu của người dùng, `.env`, `create-user.js` vẫn 8. Hộp đặt lại mật khẩu ở giao diện kiểm tra 4.
+
 ## 2026-11-25 — Hiện mật khẩu khi tạo tài khoản
 
 - `Accounts.jsx`: ô mật khẩu ở form thêm tài khoản chuyển `type="text"` (hiện rõ), `autoComplete="off"`. Ô đổi mật khẩu của chính mình và hộp đặt lại mật khẩu vẫn ẩn.

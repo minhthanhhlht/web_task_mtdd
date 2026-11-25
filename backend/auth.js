@@ -64,8 +64,9 @@ export function validateUsername(name) {
   return name;
 }
 
-export function validatePassword(password) {
-  if (typeof password !== 'string' || password.length < 8) throw fail(400, 'Mật khẩu tối thiểu 8 ký tự');
+// minLength mặc định 8; mật khẩu tạm do admin đặt (tạo/đặt lại tài khoản) chỉ cần 4 vì người dùng bị ép đổi ngay lần đăng nhập đầu
+export function validatePassword(password, minLength = 8) {
+  if (typeof password !== 'string' || password.length < minLength) throw fail(400, `Mật khẩu tối thiểu ${minLength} ký tự`);
   if (password.length > 200) throw fail(400, 'Mật khẩu tối đa 200 ký tự');
   return password;
 }
@@ -292,7 +293,7 @@ usersRouter.get('/', handle((req, res) => {
 usersRouter.post('/', handle((req, res) => {
   const body = req.body ?? {};
   validateUsername(body.ten_dang_nhap);
-  validatePassword(body.mat_khau);
+  validatePassword(body.mat_khau, 4);
   const role = body.vai_tro ?? 'user';
   if (!['admin', 'user'].includes(role)) throw fail(400, 'vai_tro phải là admin hoặc user');
   if (db.prepare('SELECT 1 FROM users WHERE ten_dang_nhap = ? COLLATE NOCASE').get(body.ten_dang_nhap)) throw fail(400, 'Tên đăng nhập đã tồn tại');
@@ -314,7 +315,7 @@ usersRouter.put('/:id', handle((req, res) => {
       db.prepare('UPDATE users SET vai_tro = ? WHERE id = ?').run(body.vai_tro, id);
     }
     if (body.mat_khau !== undefined) {
-      validatePassword(body.mat_khau);
+      validatePassword(body.mat_khau, 4);
       // Đặt lại mật khẩu: đăng xuất mọi nơi và ép đổi mật khẩu ở lần đăng nhập kế tiếp
       db.prepare('UPDATE users SET mat_khau = ?, bat_buoc_doi_mat_khau = 1 WHERE id = ?').run(hashPassword(body.mat_khau), id);
       db.prepare('DELETE FROM sessions WHERE user_id = ?').run(id);

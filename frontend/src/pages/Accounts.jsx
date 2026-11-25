@@ -85,7 +85,7 @@ function ManageUsers() {
   const resetPassword = async (u) => {
     const password = await dialog.prompt({
       title: `Đặt lại mật khẩu cho ${u.ten_dang_nhap}`, inputLabel: 'Mật khẩu mới', inputType: 'password', confirmLabel: 'Đặt lại',
-      validate: (v) => (v.length < 8 ? 'Mật khẩu tối thiểu 8 ký tự' : ''),
+      validate: (v) => (v.length < 4 ? 'Mật khẩu tối thiểu 4 ký tự' : ''),
     });
     if (password) run(() => updateUser(u.id, { mat_khau: password }), 'Đã đặt lại mật khẩu');
   };
