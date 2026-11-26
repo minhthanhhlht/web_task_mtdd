@@ -5,6 +5,7 @@ import { changePassword, createUser, deleteUser, listUsers, updateUser } from '.
 import { useAuth } from '../components/AuthContext.jsx';
 import { useDialog } from '../components/DialogContext.jsx';
 import FieldError from '../components/FieldError.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 import { ErrorBox } from '../components/StateMessage.jsx';
 import { useToast } from '../components/Toast.jsx';
 import { BUTTON_DANGER, BUTTON_PRIMARY, BUTTON_SECONDARY, CARD_CLASS, formatDateTime, INPUT_CLASS, TABLE_BORDER_CLASS } from '../constants.js';
@@ -41,7 +42,7 @@ function ChangeOwnPassword() {
   const field = (key, label) => (
     <div>
       <label htmlFor={`own-${key}`} className="mb-1 block text-sm">{label}</label>
-      <input id={`own-${key}`} name={`mat_khau_${key}`} autoComplete={key === 'old' ? 'current-password' : 'new-password'} type="password" className={`w-full ${INPUT_CLASS} ${errors[key] ? 'border-red-500' : ''}`} value={values[key]} onChange={(e) => { setValues({ ...values, [key]: e.target.value }); setErrors({}); }} />
+      <PasswordInput id={`own-${key}`} name={`mat_khau_${key}`} autoComplete={key === 'old' ? 'current-password' : 'new-password'} className={`w-full ${INPUT_CLASS} ${errors[key] ? 'border-red-500' : ''}`} value={values[key]} onChange={(e) => { setValues({ ...values, [key]: e.target.value }); setErrors({}); }} />
       <FieldError message={errors[key]} />
     </div>
   );

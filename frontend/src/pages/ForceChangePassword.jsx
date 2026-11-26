@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { changePassword } from '../api.js';
 import { useAuth } from '../components/AuthContext.jsx';
 import FieldError from '../components/FieldError.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 import { BUTTON_PRIMARY, BUTTON_SECONDARY, INPUT_CLASS } from '../constants.js';
 
 export default function ForceChangePassword() {
@@ -37,7 +38,7 @@ export default function ForceChangePassword() {
   const field = (key, label, value, setter) => (
     <div>
       <label htmlFor={`force-${key}`} className="mb-1 block text-sm">{label}</label>
-      <input id={`force-${key}`} name={`mat_khau_${key}`} autoComplete={key === 'old' ? 'current-password' : 'new-password'} type="password" className={`w-full ${INPUT_CLASS} ${errors[key] ? 'border-red-500' : ''}`} value={value} onChange={(e) => { setter(e.target.value); setErrors({}); }} />
+      <PasswordInput id={`force-${key}`} name={`mat_khau_${key}`} autoComplete={key === 'old' ? 'current-password' : 'new-password'} className={`w-full ${INPUT_CLASS} ${errors[key] ? 'border-red-500' : ''}`} value={value} onChange={(e) => { setter(e.target.value); setErrors({}); }} />
       <FieldError message={errors[key]} />
     </div>
   );

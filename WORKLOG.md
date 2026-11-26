@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-26 — Nút ẩn/hiện mật khẩu
+
+- Thêm `PasswordInput.jsx` (ô mật khẩu + nút con mắt `aria-label`, icon `eye`/`eye-off` trong `MenuIcon`); dùng ở Đăng nhập (kể cả ô nhập lại), Đổi mật khẩu ở trang Tài khoản và màn hình ép đổi mật khẩu. Hộp đặt lại mật khẩu của admin vẫn ẩn.
+
 ## 2026-11-26 — id nội bộ của task = số sau PP000017-
 
 - `db.js`: `taskIdFromCode`; tạo task đặt `id` = số Pwire; Số Pwire duy nhất toàn hệ thống (kể cả task đã xóa mềm); sửa Số Pwire thì đổi id và dời bảng con; bỏ kiểm tra trùng theo PIC ở khôi phục/chuyển PIC; migration `user_version 4` đổi id task cũ.

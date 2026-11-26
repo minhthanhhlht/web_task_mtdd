@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { login, setupAccount } from '../api.js';
 import FieldError from '../components/FieldError.jsx';
+import PasswordInput from '../components/PasswordInput.jsx';
 import { BUTTON_PRIMARY, INPUT_CLASS } from '../constants.js';
 
 export default function Login({ needsSetup, canSetup, onDone }) {
@@ -51,13 +52,13 @@ export default function Login({ needsSetup, canSetup, onDone }) {
       </div>
       <div>
         <label htmlFor="login-password" className="mb-1 block text-sm">Mật khẩu</label>
-        <input id="login-password" name="mat_khau" autoComplete={canSetup ? 'new-password' : 'current-password'} type="password" className={`w-full ${INPUT_CLASS} ${errors.password ? 'border-red-500' : ''}`} value={password} onChange={(e) => setPassword(e.target.value)} />
+        <PasswordInput id="login-password" name="mat_khau" autoComplete={canSetup ? 'new-password' : 'current-password'} className={`w-full ${INPUT_CLASS} ${errors.password ? 'border-red-500' : ''}`} value={password} onChange={(e) => setPassword(e.target.value)} />
         <FieldError message={errors.password} />
       </div>
       {canSetup && (
         <div>
           <label htmlFor="login-confirm" className="mb-1 block text-sm">Nhập lại mật khẩu</label>
-          <input id="login-confirm" name="mat_khau_nhap_lai" autoComplete="new-password" type="password" className={`w-full ${INPUT_CLASS} ${errors.confirm ? 'border-red-500' : ''}`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+          <PasswordInput id="login-confirm" name="mat_khau_nhap_lai" autoComplete="new-password" className={`w-full ${INPUT_CLASS} ${errors.confirm ? 'border-red-500' : ''}`} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
           <FieldError message={errors.confirm} />
         </div>
       )}
