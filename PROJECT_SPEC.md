@@ -138,7 +138,7 @@ Màu cho phép: `gray, blue, orange, purple, green, red, yellow`. Lớp Tailwind
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS tasks (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id INTEGER PRIMARY KEY AUTOINCREMENT,         -- id nội bộ = số sau PP000017- của ma_task (ví dụ PP000017-236702 → id 236702), tự đặt lúc tạo, đổi theo khi sửa Số Pwire
   ma_task TEXT NOT NULL,                       -- hiển thị là "Số Pwire"
   ten TEXT NOT NULL,
   ngay_nhan TEXT NOT NULL,                     -- 'YYYY-MM-DD HH:mm' (dữ liệu cũ có thể chỉ 'YYYY-MM-DD')
@@ -257,7 +257,7 @@ CREATE INDEX IF NOT EXISTS idx_task_history_task ON task_history(task_id, id);
 
 - Ngày giờ lưu `YYYY-MM-DD HH:mm` (giờ local); thời điểm hệ thống ghi dùng `datetime('now','localtime')`.
 - Task mới: trạng thái = trạng thái đầu tiên theo `thu_tu`; `tien_do = 0`; sao chép các mục của `checklist_templates` thành `checklist_items` (chưa tick) trong **cùng transaction**; ghi nhật ký "Tạo task".
-- **Xóa task là xóa mềm:** `DELETE /api/tasks/:id` chỉ đặt `xoa_luc` (giờ hiện tại) và `nguoi_xoa` (tên đăng nhập), ghi nhật ký `Xóa task`; checklist, vấn đề, `progress_log`, `task_history` giữ nguyên. Task đã xóa **không xuất hiện** ở danh sách, checklist, CSV, mẫu checklist (áp dụng), cập nhật tiến độ, và mọi API theo id (chi tiết, sửa, lịch sử, checklist, vấn đề, `/api/eod`, chuyển PIC) trả 404 như không tồn tại. Kiểm tra trùng Số Pwire chỉ tính task chưa xóa (tạo lại cùng Số Pwire được). Trạng thái và Dev đang được task đã xóa dùng vẫn bị coi là đang dùng (không xóa được) để khôi phục không bị mồ côi. Khôi phục xem 6.9.
+- **Xóa task là xóa mềm:** `DELETE /api/tasks/:id` chỉ đặt `xoa_luc` (giờ hiện tại) và `nguoi_xoa` (tên đăng nhập), ghi nhật ký `Xóa task`; checklist, vấn đề, `progress_log`, `task_history` giữ nguyên. Task đã xóa **không xuất hiện** ở danh sách, checklist, CSV, mẫu checklist (áp dụng), cập nhật tiến độ, và mọi API theo id (chi tiết, sửa, lịch sử, checklist, vấn đề, `/api/eod`, chuyển PIC) trả 404 như không tồn tại. Số Pwire duy nhất toàn hệ thống **kể cả task đã xóa mềm** (muốn tạo lại phải khôi phục hoặc xóa vĩnh viễn task cũ). Trạng thái và Dev đang được task đã xóa dùng vẫn bị coi là đang dùng (không xóa được) để khôi phục không bị mồ côi. Khôi phục xem 6.9.
 - `EDITABLE_TASK_COLUMNS` (whitelist cho PUT): `ma_task, ten, ngay_nhan, deadline, nguoi_giao, tien_do, trang_thai, ghi_chu, link_test_case, dev_cross_check, dev_hoan_thanh_thuc_te`. **Không** có `nguoi_tao_id`.
 
 ---
@@ -274,7 +274,7 @@ CREATE INDEX IF NOT EXISTS idx_task_history_task ON task_history(task_id, id);
 ### 5.1 Kiểm tra dữ liệu task
 
 - `ma_task` (Số Pwire): bắt buộc, chuỗi, ≤ 500; **tạo mới luôn** phải khớp `/^PP000017-\d+$/`, nếu không → 400 `Số Pwire phải bắt đầu bằng PP000017- và sau dấu - chỉ gồm chữ số, ví dụ PP000017-205779`. **Sửa** chỉ kiểm tra định dạng + trùng khi giá trị bị **đổi** (task cũ sai định dạng vẫn sửa được trường khác).
-- Trùng Số Pwire (không phân biệt hoa thường) **trong các task của cùng chủ sở hữu** → 400 `Số Pwire đã tồn tại` (frontend nhận diện thông báo này, hiện lỗi dưới ô).
+- **id nội bộ = số sau `PP000017-`** (số nguyên dương an toàn; `PP000017-0` không hợp lệ; số có số 0 đứng đầu cùng một id). Trùng Số Pwire (không phân biệt hoa thường) hoặc trùng id với **bất kỳ task nào** (mọi chủ sở hữu, kể cả đã xóa mềm) → 400 `Số Pwire đã tồn tại` (task đã xóa: `Số Pwire đã tồn tại trong mục Task đã xóa (nhờ quản trị viên khôi phục hoặc xóa vĩnh viễn)`); frontend nhận diện tiền tố `Số Pwire đã tồn tại`, hiện lỗi dưới ô. **Sửa Số Pwire** thì id đổi theo (dời `checklist_items`, `issues`, `progress_log`, `task_history` sang id mới trong cùng transaction, `PRAGMA defer_foreign_keys = ON`) và API trả task với id mới; giao diện chi tiết chuyển sang `/tasks/<id mới>`. Migration `user_version 4`: task cũ đổi id theo số Pwire; task không có số hợp lệ hoặc bị trùng số nhận id mới lớn hơn mọi id đang dùng.
 - `ten` bắt buộc ≤ 500; `nguoi_giao` bắt buộc ≤ 200; `ngay_nhan` bắt buộc dạng `YYYY-MM-DD HH:mm` (nhận cả `YYYY-MM-DD` = 00:00), phải là ngày giờ có thật (loại 2026-02-31, 25:00) → 400 `ngay_nhan phải có dạng YYYY-MM-DD HH:mm`.
 - `deadline`, `dev_hoan_thanh_thuc_te`: tùy chọn; `''`/`null` → lưu NULL; có giá trị thì phải hợp lệ như trên (`<field> phải có dạng YYYY-MM-DD HH:mm`).
 - `tien_do`: số nguyên 0–100. `trang_thai`: phải có trong `task_statuses` (so khớp không phân biệt hoa thường), lưu **đúng tên chuẩn**.
@@ -304,7 +304,7 @@ Khi chuyển task sang trạng thái có `yeu_cau_hoan_tat = 1` (mặc định `
   - mọi method `/users…`
 - **Phạm vi task:** `getOwnerScope(req)` = `undefined` nếu admin (thấy tất cả) hoặc `req.user.id` nếu user. `assertTaskAccess(req, taskId)`: task không tồn tại **hoặc** không thuộc user (admin luôn được) → **404** `Không tìm thấy task` (không lộ việc tồn tại). Áp dụng cho: danh sách, checklists, tạo (gán `nguoi_tao_id = req.user.id`), chi tiết, lịch sử, sửa, xóa, tick từng mục (tra task từ mục), tick tất cả, thêm/sửa/xóa vấn đề (tra task từ vấn đề), `/api/eod` (kiểm tra mọi `task_id` **trước** khi lưu), xuất CSV (chỉ task của mình).
 - Danh sách trạng thái, danh sách Dev, mẫu checklist: đọc được bởi mọi người, dùng chung.
-- **Chuyển PIC** (`transferTask`, transaction): task không tồn tại → 404; tài khoản đích không tồn tại → 400 `Tài khoản nhận task không tồn tại`; đã là PIC → 400 `Task đã thuộc tài khoản này`; PIC mới đã có task cùng Số Pwire → 400 `<tên> đã có task khác cùng Số Pwire này`; cập nhật `nguoi_tao_id` + `cap_nhat_luc`; nhật ký `PIC: <cũ> → <mới>` (cũ có thể `(chưa có PIC)` / `(đã xóa)`), trường `PIC`. Trả task.
+- **Chuyển PIC** (`transferTask`, transaction): task không tồn tại → 404; tài khoản đích không tồn tại → 400 `Tài khoản nhận task không tồn tại`; đã là PIC → 400 `Task đã thuộc tài khoản này`; cập nhật `nguoi_tao_id` + `cap_nhat_luc`; nhật ký `PIC: <cũ> → <mới>` (cũ có thể `(chưa có PIC)` / `(đã xóa)`), trường `PIC`. Trả task.
 
 ---
 
@@ -396,7 +396,7 @@ Quy tắc: tên đăng nhập `/^[A-Za-z0-9._-]{3,50}$/` (lỗi: `Tên đăng nh
 ### 6.9 Task đã xóa (chỉ admin; `/api/deleted-tasks…` nằm trong `ADMIN_ONLY_RULES`, user thường 403)
 
 - `GET /api/deleted-tasks` — query `q`, `page`, `limit`, `sort`, `dir` (khóa sort như `GET /api/tasks`, thêm `xoa_luc`, `nguoi_xoa`; mặc định `xoa_luc` giảm dần). Trả `{ items, total }` như danh sách task, kèm `xoa_luc`, `nguoi_xoa`.
-- `POST /api/deleted-tasks/:id/restore` — đặt `xoa_luc`/`nguoi_xoa` về NULL, cập nhật `cap_nhat_luc`, ghi nhật ký `Khôi phục task`, trả task. Task không tồn tại hoặc chưa xóa → 404 `Không tìm thấy task đã xóa`; PIC của task đã có task khác (chưa xóa) cùng Số Pwire → 400 `Không thể khôi phục: đã có task khác cùng Số Pwire`.
+- `POST /api/deleted-tasks/:id/restore` — đặt `xoa_luc`/`nguoi_xoa` về NULL, cập nhật `cap_nhat_luc`, ghi nhật ký `Khôi phục task`, trả task. Task không tồn tại hoặc chưa xóa → 404 `Không tìm thấy task đã xóa`.
 - `DELETE /api/deleted-tasks/:id` — **xóa vĩnh viễn** (`DELETE FROM tasks`, checklist/vấn đề/tiến độ/nhật ký xóa theo `ON DELETE CASCADE`), 204; chỉ áp dụng cho task đã xóa mềm, task còn hoạt động hoặc không tồn tại → 404 `Không tìm thấy task đã xóa` (muốn xóa vĩnh viễn phải xóa mềm trước).
 
 ### 6.7 Nhật ký thay đổi (`task_history`)
@@ -555,7 +555,7 @@ Giao diện theo **evondevKit** (chế độ sáng, phẳng), màu nhấn **xanh
 ## 10. Bộ kiểm tra chấp nhận (phải đạt hết)
 
 **Task & dữ liệu**
-- [ ] Tạo task thiếu `ma_task/ten/ngay_nhan/nguoi_giao` → 400, không lưu; Số Pwire sai mẫu (`PP000017-12a`, `ABC`) → 400; trùng → 400 `Số Pwire đã tồn tại`; hai user khác nhau dùng cùng Số Pwire được.
+- [ ] Tạo task thiếu `ma_task/ten/ngay_nhan/nguoi_giao` → 400, không lưu; Số Pwire sai mẫu (`PP000017-12a`, `ABC`) → 400; trùng (kể cả giữa hai user hoặc task đã xóa mềm) → 400 `Số Pwire đã tồn tại`; task `PP000017-236702` có id 236702, đổi Số Pwire thì id đổi theo mà checklist, lịch sử, tiến độ đi theo.
 - [ ] Task mới có đúng 11 mục checklist chưa tick; tick lưu `xong_luc`, tải lại vẫn còn; bỏ tick xóa `xong_luc`.
 - [ ] Chuyển `CLOSED` khi tiến độ 90% hoặc còn mục chưa tick → 400 và không đổi gì; đủ điều kiện thì được; `CANCELED` không bị ép.
 - [ ] Task `CLOSED/CANCELED` không còn ở `GET /api/tasks` (mặc định) mà chỉ ở `archived=1`.

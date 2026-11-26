@@ -2,6 +2,12 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-26 — id nội bộ của task = số sau PP000017-
+
+- `db.js`: `taskIdFromCode`; tạo task đặt `id` = số Pwire; Số Pwire duy nhất toàn hệ thống (kể cả task đã xóa mềm); sửa Số Pwire thì đổi id và dời bảng con; bỏ kiểm tra trùng theo PIC ở khôi phục/chuyển PIC; migration `user_version 4` đổi id task cũ.
+- `TaskDetail.jsx`: lưu mà id đổi thì chuyển sang `/tasks/<id mới>`.
+- Thử bằng DB tạm (id cũ hoán đổi chéo, số trùng, mã sai mẫu): migration đúng, khóa ngoại sạch, trùng/0/đã xóa bị từ chối, đổi số giữ checklist và lịch sử.
+
 ## 2026-11-25 — Ô ghi chú cho viết dài hơn
 
 - `RichNoteEditor.jsx`: vùng soạn `min-h-40 max-h-[80vh]` (trước `max-h-96` chặn cả việc kéo giãn), vẫn `resize-y` và cuộn dọc khi nội dung dài.

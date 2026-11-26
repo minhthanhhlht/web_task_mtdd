@@ -68,9 +68,11 @@ export default function TaskDetail() {
   // Lưu thông tin task (tiến độ đổi thì server ghi cập nhật hôm nay)
   const saveInfo = async (payload) => {
     const progressChanged = payload.tien_do !== task.tien_do;
-    await updateTask(task.id, payload);
+    const saved = await updateTask(task.id, payload);
     toast.success(progressChanged ? 'Đã lưu thay đổi và ghi cập nhật tiến độ hôm nay' : 'Đã lưu thay đổi');
     if (progressChanged) notifyReportChanged();
+    // Đổi Số Pwire thì id nội bộ đổi theo: chuyển sang địa chỉ mới (trang tự tải lại)
+    if (saved && saved.id !== task.id) { navigate(`/tasks/${saved.id}`, { replace: true }); return; }
     await load();
   };
 
