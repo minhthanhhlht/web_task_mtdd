@@ -1,5 +1,6 @@
 // Danh sách task dùng cho "Đang xử lý" (archived=false) và "Đã hoàn thành" (archived=true).
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@astryxdesign/core/Badge';
 import { Banner } from '@astryxdesign/core/Banner';
 import { Button } from '@astryxdesign/core/Button';
@@ -45,6 +46,7 @@ function deadlineTone(deadline) {
 }
 
 export default function TaskListView({ archived }) {
+  const navigate = useNavigate();
   const toast = useToast();
   const { user } = useAuth();
   const { activeStatuses } = useStatuses();
@@ -161,6 +163,7 @@ export default function TaskListView({ archived }) {
       <ErrorBox message={error} onRetry={load} />
       <DataTable
         minWidth={isAdmin ? 1510 : 1390}
+        onRowClick={(task) => navigate(`/tasks/${task.id}`)}
         data={data.items}
         columns={columns}
         idKey="id"

@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Bấm vào dòng task để mở chi tiết
+
+- `DataTable` thêm `onRowClick(item)` (bỏ qua bấm vào liên kết, nút, ô nhập, menu), con trỏ tay trên dòng. `TaskListView` (Đang xử lý và Đã hoàn thành) dùng để chuyển sang `/tasks/:id`.
+
 ## 2026-11-28 — Bảng vừa khít, mỗi ô một dòng, PIC hiện tên
 
 - `DataTable`: khung bọc `-mx-4 px-4` bù phần Table Astryx tràn 16px mỗi bên (nguyên nhân thanh cuộn ngang thừa dù bảng đủ chỗ); `textOverflow="truncate"` nên mỗi ô một dòng, chữ dài bị cắt bằng …
