@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Vòng quay Đang tải ở giữa
+
+- `Loading` canh giữa; `Loading fullPage` (chiếm giữa vùng nội dung) dùng khi chờ tải trang chi tiết task; màn chờ `AuthGate` canh giữa màn hình.
+
 ## 2026-11-28 — Bấm vào dòng task để mở chi tiết
 
 - `DataTable` thêm `onRowClick(item)` (bỏ qua bấm vào liên kết, nút, ô nhập, menu), con trỏ tay trên dòng. `TaskListView` (Đang xử lý và Đã hoàn thành) dùng để chuyển sang `/tasks/:id`.

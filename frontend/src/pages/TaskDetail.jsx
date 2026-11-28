@@ -64,7 +64,7 @@ export default function TaskDetail() {
   };
 
   if (error && !task) return <ErrorBox message={error} onRetry={load} />;
-  if (!task) return <Loading />;
+  if (!task) return <Loading fullPage />;
 
   const items = task.checklist_items;
   const doneCount = items.filter((i) => i.da_xong).length;

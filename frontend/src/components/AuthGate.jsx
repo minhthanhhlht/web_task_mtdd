@@ -33,7 +33,7 @@ export default function AuthGate({ children }) {
   const logout = useCallback(async () => { await apiLogout().catch(() => null); await reload(); }, [reload]);
   const value = useMemo(() => ({ user: state.user, reload, logout }), [state.user, reload, logout]);
 
-  if (state.loading) return <div className="p-6"><Spinner size="md" label="Đang tải..." /></div>;
+  if (state.loading) return <div className="flex min-h-screen items-center justify-center"><Spinner size="md" label="Đang tải..." /></div>;
   if (state.error && !state.user) {
     return <div className="m-6"><Banner status="error" title={state.error} /></div>;
   }
