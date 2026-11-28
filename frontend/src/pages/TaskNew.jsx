@@ -1,9 +1,11 @@
 // Trang thêm task mới.
 import { useNavigate } from 'react-router-dom';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
 import { createTask } from '../api.js';
 import TaskForm from '../components/TaskForm.jsx';
 import { useToast } from '../components/Toast.jsx';
-import { CARD_CLASS, DEFAULT_ASSIGNER, getNow, TASK_CODE_PREFIX } from '../constants.js';
+import { DEFAULT_ASSIGNER, getNow, TASK_CODE_PREFIX } from '../constants.js';
 
 // Giá trị đầu của form thêm mới
 const INITIAL_VALUES = {
@@ -23,11 +25,11 @@ export default function TaskNew() {
   };
 
   return (
-    <div>
-      <h1 className="mb-4 text-xl font-semibold">Thêm task</h1>
-      <div className={CARD_CLASS}>
+    <div className="flex flex-col gap-4">
+      <Heading level={1}>Thêm task</Heading>
+      <Card>
         <TaskForm initialValues={INITIAL_VALUES} submitLabel="Tạo task" onSubmit={submit} gridClass="grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4" />
-      </div>
+      </Card>
     </div>
   );
 }

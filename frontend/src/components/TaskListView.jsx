@@ -1,22 +1,30 @@
 // Danh sách task dùng cho "Đang xử lý" (archived=false) và "Đã hoàn thành" (archived=true).
-import MenuIcon from './MenuIcon.jsx';
-import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Badge } from '@astryxdesign/core/Badge';
+import { Banner } from '@astryxdesign/core/Banner';
+import { Button } from '@astryxdesign/core/Button';
+import { CheckboxInput } from '@astryxdesign/core/CheckboxInput';
+import { EmptyState } from '@astryxdesign/core/EmptyState';
+import { Heading } from '@astryxdesign/core/Heading';
+import { Link } from '@astryxdesign/core/Link';
+import { Selector } from '@astryxdesign/core/Selector';
+import { useTableSortable } from '@astryxdesign/core/Table';
+import DataTable from './DataTable.jsx';
+import { TextInput } from '@astryxdesign/core/TextInput';
 import { listTasks, saveEod } from '../api.js';
-import { BUTTON_PRIMARY, BUTTON_SECONDARY, BUTTON_SMALL, formatDateTime, INPUT_CLASS, TABLE_BORDER_CLASS } from '../constants.js';
-import { getReportStatus, REPORT_LEVEL_CLASS } from '../reportStatus.js';
+import { getReportStatus, REPORT_LEVEL_VARIANT } from '../reportStatus.js';
 import usePageSize from '../usePageSize.js';
 import useReportSummary, { notifyReportChanged } from '../useReportSummary.js';
 import { useAuth } from './AuthContext.jsx';
 import Pagination from './Pagination.jsx';
-import TaskStats from './TaskStats.jsx';
-import UserChip from './UserChip.jsx';
 import ProgressBar from './ProgressBar.jsx';
 import PwireLink from './PwireLink.jsx';
 import { ErrorBox, Loading } from './StateMessage.jsx';
 import StatusBadge from './StatusBadge.jsx';
 import { useStatuses } from './StatusContext.jsx';
+import TaskStats from './TaskStats.jsx';
 import { useToast } from './Toast.jsx';
+import UserChip from './UserChip.jsx';
 
 // Đổi "2026-11-25 00:25:07" → "25/11/2026 00:25:07" (đủ ngày tháng năm, giờ phút giây nếu có)
 function shortDateTime(value) {
@@ -31,13 +39,12 @@ function deadlineTone(deadline) {
   const today = new Date();
   const key = (d) => d.toLocaleDateString('sv-SE');
   const tomorrow = new Date(today.getTime() + 86400000);
-  if (day < key(today)) return 'font-medium text-error-strong';
-  if (day <= key(tomorrow)) return 'font-medium text-warning';
+  if (day < key(today)) return 'font-medium text-(--color-text-error)';
+  if (day <= key(tomorrow)) return 'font-medium text-(--color-text-warning)';
   return '';
 }
 
 export default function TaskListView({ archived }) {
-  const navigate = useNavigate();
   const toast = useToast();
   const { user } = useAuth();
   const { activeStatuses } = useStatuses();
@@ -71,19 +78,17 @@ export default function TaskListView({ archived }) {
   }, [status, q, page, limit, archived, notUpdated, sort]);
   useEffect(() => { load(); }, [load, reloadKey]);
 
-  // Bấm tiêu đề cột: tăng → giảm → bỏ sắp xếp
-  const toggleSort = (key) => {
-    setPage(1);
-    setSort((s) => {
-      if (s.key !== key) return { key, dir: 'asc' };
-      return s.dir === 'asc' ? { key, dir: 'desc' } : { key: '', dir: 'asc' };
-    });
-  };
-  const sortMark = (key) => <MenuIcon name={sort.key === key ? (sort.dir === 'asc' ? 'sort-up' : 'sort-down') : 'sort-none'} className="size-3.5" />;
+  // Sắp xếp do backend làm: Table chỉ hiển thị trạng thái sắp xếp và báo khi người dùng bấm tiêu đề
+  const sortPlugin = useTableSortable({
+    sort: sort.key ? [{ sortKey: sort.key, direction: sort.dir === 'asc' ? 'ascending' : 'descending' }] : [],
+    onSortChange: (next) => {
+      setPage(1);
+      setSort(next.length ? { key: next[0].sortKey, dir: next[0].direction === 'ascending' ? 'asc' : 'desc' } : { key: '', dir: 'asc' });
+    },
+  });
 
   // "Không đổi": xác nhận không có gì thay đổi, không gửi ghi chú
-  const confirmUnchanged = async (event, task) => {
-    event.stopPropagation();
+  const confirmUnchanged = useCallback(async (task) => {
     try {
       await saveEod([{ task_id: task.id, tien_do: task.tien_do, trang_thai: task.trang_thai }]);
       toast.success('Đã ghi nhận: không có gì thay đổi ở tiến độ hôm nay');
@@ -92,87 +97,79 @@ export default function TaskListView({ archived }) {
     } catch (err) {
       toast.error(err.message);
     }
-  };
+  }, [toast]);
 
-  const columns = [
-    ...(isAdmin ? [['chu_so_huu', 'PIC']] : []),
-    ['ma_task', 'Số Pwire'], ['ten', 'Tên'], ['link_test_case', 'Link Pwire'], ['nguoi_giao', 'Người giao'], ['deadline', 'Deadline'],
-    ['tien_do', 'Tiến độ'], ['trang_thai', 'Trạng thái'], ['checklist', 'Checklist'],
-    ...(archived ? [] : [['cap_nhat', 'Cập nhật']]),
-  ];
+  const columns = useMemo(() => [
+    ...(isAdmin ? [{ key: 'chu_so_huu', header: 'PIC', sortable: true, renderCell: (t) => (t.chu_so_huu ? <UserChip name={t.chu_so_huu} /> : '—') }] : []),
+    { key: 'ma_task', header: 'Số Pwire', sortable: true, renderCell: (t) => <Link href={`/tasks/${t.id}`}>{t.ma_task}</Link> },
+    { key: 'ten', header: 'Tên', sortable: true, renderCell: (t) => <span className="inline-block max-w-56 truncate align-bottom" title={t.ten}>{t.ten}</span> },
+    { key: 'link_test_case', header: 'Link Pwire', sortable: true, renderCell: (t) => <PwireLink url={t.link_test_case} compact /> },
+    { key: 'nguoi_giao', header: 'Người giao', sortable: true, renderCell: (t) => <span className="inline-block max-w-24 truncate align-bottom" title={t.nguoi_giao}>{t.nguoi_giao}</span> },
+    {
+      key: 'deadline', header: 'Deadline', sortable: true,
+      renderCell: (t) => <span className={`whitespace-nowrap tabular-nums ${archived ? '' : deadlineTone(t.deadline)}`} title={t.deadline ?? undefined}>{t.deadline ? shortDateTime(t.deadline) : '—'}</span>,
+    },
+    { key: 'tien_do', header: 'Tiến độ', sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
+    { key: 'trang_thai', header: 'Trạng thái', sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
+    {
+      key: 'checklist', header: 'Checklist', sortable: true,
+      renderCell: (t) => <span className={`tabular-nums ${t.checklist_tong > 0 && t.checklist_da_xong === t.checklist_tong ? 'font-medium text-(--color-text-success)' : ''}`}>{t.checklist_da_xong}/{t.checklist_tong}</span>,
+    },
+    ...(archived ? [] : [{
+      key: 'cap_nhat', header: 'Cập nhật', sortable: true,
+      renderCell: (t) => {
+        const rs = getReportStatus(t, report.now);
+        return (
+          <span className="inline-flex items-center gap-2 whitespace-nowrap">
+            <Badge variant={REPORT_LEVEL_VARIANT[rs.level]} label={rs.updatedToday ? shortDateTime(rs.updatedAtFull ?? t.ngay_cap_nhat_cuoi) : rs.level === 'pending' ? 'Chưa cập nhật' : rs.label} />
+            {!rs.updatedToday && <Button label="Không đổi" size="sm" onClick={() => confirmUnchanged(t)} />}
+          </span>
+        );
+      },
+    }]),
+  ], [isAdmin, archived, report.now, confirmUnchanged]);
 
   return (
-    <div>
-      <h1 className="mb-4 text-xl font-semibold">{archived ? 'Đã hoàn thành' : 'Danh sách task đang xử lý'}</h1>
+    <div className="flex flex-col gap-3">
+      <Heading level={1}>{archived ? 'Đã hoàn thành' : 'Danh sách task đang xử lý'}</Heading>
       {!archived && <TaskStats reportTotal={report.total} />}
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-        <input className={`min-w-44 flex-1 sm:max-w-sm ${INPUT_CLASS}`} aria-label="Tìm Số Pwire, tên..." name="tim_so_pwire_ten" placeholder="Tìm Số Pwire, tên..." title="Tìm theo số Pwire, tên, link, người giao, Dev, ghi chú, PIC" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-48 flex-1 sm:max-w-sm">
+          <TextInput label="Tìm Số Pwire, tên..." isLabelHidden placeholder="Tìm Số Pwire, tên..." startIcon="search" hasClear value={search} onChange={setSearch} htmlName="tim_so_pwire_ten" />
+        </div>
         {!archived && (
           <>
-            <select aria-label="Lọc theo trạng thái" name="trang_thai" className={INPUT_CLASS} value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
-              <option value="">Tất cả trạng thái</option>
-              {activeStatuses.map((s) => <option key={s.id} value={s.ten}>{s.ten}</option>)}
-            </select>
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" name="chua_cap_nhat" checked={notUpdated} onChange={(e) => { setNotUpdated(e.target.checked); setPage(1); }} /> Chưa cập nhật hôm nay
-            </label>
-            <Link to="/tasks/new" className={`ml-auto ${BUTTON_PRIMARY}`}>Thêm task</Link>
+            <Selector
+              label="Lọc theo trạng thái" isLabelHidden value={status} width={220}
+              options={[{ value: '', label: 'Tất cả trạng thái' }, ...activeStatuses.map((s) => ({ value: s.ten, label: s.ten }))]}
+              onChange={(value) => { setStatus(value ?? ''); setPage(1); }}
+            />
+            <CheckboxInput label="Chưa cập nhật hôm nay" value={notUpdated} onChange={(checked) => { setNotUpdated(checked); setPage(1); }} />
+            <div className="ml-auto"><Button label="Thêm task" variant="primary" href="/tasks/new" /></div>
           </>
         )}
       </div>
 
       {!archived && report.total > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-3 rounded-lg border border-error-border bg-error-bg px-3 py-2 text-sm text-error-text">
-          <span>
-            {report.afterCutoff ? `Có ${report.total} task chưa cập nhật tiến độ hôm nay` : `Còn ${report.total} task chưa cập nhật tiến độ (chốt lúc 16:30)`}
-            {report.missed > 0 ? `, trong đó ${report.missed} task đã bỏ sót từ các ngày trước` : ''}
-          </span>
-          <Link to="/cuoi-chieu" className={BUTTON_SECONDARY}>Cập nhật ngay</Link>
-        </div>
+        <Banner
+          status="error"
+          title={`${report.afterCutoff ? `Có ${report.total} task chưa cập nhật tiến độ hôm nay` : `Còn ${report.total} task chưa cập nhật tiến độ (chốt lúc 16:30)`}${report.missed > 0 ? `, trong đó ${report.missed} task đã bỏ sót từ các ngày trước` : ''}`}
+          endContent={<Button label="Cập nhật ngay" href="/cuoi-chieu" />}
+        />
       )}
 
       <ErrorBox message={error} onRetry={load} />
-      <div className="overflow-x-auto rounded-xl border border-border-strong bg-surface">
-        <table className={`w-full text-sm ${TABLE_BORDER_CLASS}`}>
-          <thead className="bg-surface-hover text-left">
-            <tr>
-              {columns.map(([key, label]) => (
-                <th key={key} className="whitespace-nowrap px-1.5 py-1">
-                  <button type="button" className="inline-flex h-8 items-center gap-1 font-medium hover:text-foreground" onClick={() => toggleSort(key)}>{label}<span className="text-muted">{sortMark(key)}</span></button>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {data.items.map((task) => {
-              const rs = getReportStatus(task, report.now);
-              return (
-                <tr key={task.id} className="cursor-pointer align-middle hover:bg-surface-hover" onClick={() => navigate(`/tasks/${task.id}`)}>
-                  {isAdmin && <td className="whitespace-nowrap px-1.5 py-1.5">{task.chu_so_huu ? <UserChip name={task.chu_so_huu} /> : '—'}</td>}
-                  <td className="whitespace-nowrap px-1.5 py-1.5">{task.ma_task}</td>
-                  <td className="max-w-40 truncate px-1.5 py-1.5" title={task.ten}>{task.ten}</td>
-                  <td className="px-1.5 py-1.5"><PwireLink url={task.link_test_case} compact /></td>
-                  <td className="max-w-20 truncate px-1.5 py-1.5" title={task.nguoi_giao}>{task.nguoi_giao}</td>
-                  <td className={`whitespace-nowrap px-1.5 py-1.5 tabular-nums ${archived ? '' : deadlineTone(task.deadline)}`} title={task.deadline ?? undefined}>{task.deadline ? shortDateTime(task.deadline) : '—'}</td>
-                  <td className="whitespace-nowrap px-1.5 py-1.5"><ProgressBar value={task.tien_do} /></td>
-                  <td className="px-1.5 py-1.5"><StatusBadge name={task.trang_thai} /></td>
-                  <td className={`whitespace-nowrap px-1.5 py-1.5 tabular-nums ${task.checklist_tong > 0 && task.checklist_da_xong === task.checklist_tong ? 'font-medium text-success' : ''}`}>{task.checklist_da_xong}/{task.checklist_tong}</td>
-                  {!archived && (
-                    <td className="whitespace-nowrap px-1.5 py-1.5">
-                      <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium ${REPORT_LEVEL_CLASS[rs.level]}`}>
-                        {rs.updatedToday ? shortDateTime(rs.updatedAtFull ?? task.ngay_cap_nhat_cuoi) : rs.level === 'pending' ? 'Chưa cập nhật' : rs.label}
-                      </span>
-                      {!rs.updatedToday && <button type="button" className={`ml-2 ${BUTTON_SMALL}`} onClick={(e) => confirmUnchanged(e, task)}>Không đổi</button>}
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        minWidth={1100}
+        data={data.items}
+        columns={columns}
+        idKey="id"
+        density="compact"
+        hasHover
+        plugins={{ sort: sortPlugin }}
+        emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />}
+      />
       {loading && <Loading />}
-      {!loading && data.items.length === 0 && <p className="py-4 text-sm text-muted">Không có task nào.</p>}
       <Pagination total={data.total} page={page} limit={limit} onChangePage={setPage} onChangeLimit={(v) => { changeLimit(v); setPage(1); }} />
     </div>
   );

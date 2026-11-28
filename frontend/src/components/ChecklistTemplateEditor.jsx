@@ -1,10 +1,14 @@
 // Admin: sửa mẫu checklist (thêm, đổi tên, đổi thứ tự, xóa, lưu / hoàn tác).
-import RowMenu from './RowMenu.jsx';
-import MenuIcon from './MenuIcon.jsx';
 import { useCallback, useEffect, useState } from 'react';
+import { Badge } from '@astryxdesign/core/Badge';
+import { Button } from '@astryxdesign/core/Button';
+import { Icon } from '@astryxdesign/core/Icon';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import { getTemplates, saveTemplates } from '../api.js';
-import { BUTTON_ICON, BUTTON_PRIMARY, BUTTON_SECONDARY, INPUT_CLASS } from '../constants.js';
 import { useDialog } from './DialogContext.jsx';
+import RowMenu from './RowMenu.jsx';
 import { ErrorBox, Loading } from './StateMessage.jsx';
 import { useToast } from './Toast.jsx';
 
@@ -68,27 +72,29 @@ export default function ChecklistTemplateEditor({ onDirtyChange }) {
 
   if (loading) return <Loading />;
   return (
-    <div>
+    <div className="flex flex-col gap-3">
       <ErrorBox message={error} onRetry={load} />
-      <ol className="space-y-1">
+      <ol className="flex flex-col gap-2">
         {names.map((name, index) => (
           <li key={`${index}-${saved.length}`} className="flex flex-wrap items-center gap-2">
-            <span className="w-6 text-right text-sm text-muted">{index + 1}.</span>
-            <input aria-label={`Mục checklist ${index + 1}`} name={`muc_${index + 1}`} className={`min-w-0 flex-1 basis-40 ${INPUT_CLASS}`} value={name} onChange={(e) => setNames(names.map((n, i) => (i === index ? e.target.value : n)))} />
-            <button type="button" className={BUTTON_ICON} disabled={index === 0} onClick={() => move(index, -1)} aria-label="Lên"><MenuIcon name="arrow-up" className="size-4" /></button>
-            <button type="button" className={BUTTON_ICON} disabled={index === names.length - 1} onClick={() => move(index, 1)} aria-label="Xuống"><MenuIcon name="arrow-down" className="size-4" /></button>
+            <span className="w-6 text-right"><Text color="secondary">{index + 1}.</Text></span>
+            <div className="min-w-0 flex-1 basis-40">
+              <TextInput label={`Mục checklist ${index + 1}`} isLabelHidden value={name} onChange={(v) => setNames(names.map((n, i) => (i === index ? v : n)))} htmlName={`muc_${index + 1}`} />
+            </div>
+            <Button label="Lên" isIconOnly icon={<Icon icon={ArrowUp} />} isDisabled={index === 0} onClick={() => move(index, -1)} />
+            <Button label="Xuống" isIconOnly icon={<Icon icon={ArrowDown} />} isDisabled={index === names.length - 1} onClick={() => move(index, 1)} />
             <RowMenu items={[{ label: 'Xóa mục', icon: 'trash', danger: true, onClick: () => remove(index) }]} />
           </li>
         ))}
       </ol>
-      <div className="mt-3 flex gap-2">
-        <input className={`flex-1 ${INPUT_CLASS}`} aria-label="Thêm mục mới" name="them_muc_moi" placeholder="Thêm mục mới" value={newName} onChange={(e) => setNewName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }} />
-        <button type="button" className={BUTTON_SECONDARY} onClick={add}>Thêm mục</button>
+      <div className="flex gap-2">
+        <div className="flex-1"><TextInput label="Thêm mục mới" isLabelHidden placeholder="Thêm mục mới" value={newName} onChange={setNewName} onEnter={add} htmlName="them_muc_moi" /></div>
+        <Button label="Thêm mục" onClick={add} />
       </div>
-      <div className="mt-3 flex items-center gap-2">
-        <button type="button" className={BUTTON_PRIMARY} disabled={!dirty || saving} onClick={save}>{saving ? 'Đang lưu...' : 'Lưu mẫu'}</button>
-        <button type="button" className={BUTTON_SECONDARY} disabled={!dirty} onClick={() => setNames(saved)}>Hoàn tác</button>
-        {dirty && <span className="text-sm text-warning">Mẫu có thay đổi chưa lưu</span>}
+      <div className="flex flex-wrap items-center gap-2">
+        <Button label={saving ? 'Đang lưu...' : 'Lưu mẫu'} variant="primary" isDisabled={!dirty || saving} onClick={save} />
+        <Button label="Hoàn tác" isDisabled={!dirty} onClick={() => setNames(saved)} />
+        {dirty && <Badge variant="warning" label="Mẫu có thay đổi chưa lưu" />}
       </div>
     </div>
   );

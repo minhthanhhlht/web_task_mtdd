@@ -1,10 +1,13 @@
 // Màn hình ép đổi mật khẩu lần đầu: thay cho toàn bộ ứng dụng (không có menu).
 import { useState } from 'react';
+import { Banner } from '@astryxdesign/core/Banner';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { Text } from '@astryxdesign/core/Text';
 import { changePassword } from '../api.js';
 import { useAuth } from '../components/AuthContext.jsx';
-import FieldError from '../components/FieldError.jsx';
-import PasswordInput from '../components/PasswordInput.jsx';
-import { BUTTON_PRIMARY, BUTTON_SECONDARY, INPUT_CLASS } from '../constants.js';
+import PasswordField from '../components/PasswordField.jsx';
 
 export default function ForceChangePassword() {
   const { user, reload, logout } = useAuth();
@@ -35,27 +38,27 @@ export default function ForceChangePassword() {
     }
   };
 
-  const field = (key, label, value, setter) => (
-    <div>
-      <label htmlFor={`force-${key}`} className="mb-1 block text-sm">{label}</label>
-      <PasswordInput id={`force-${key}`} name={`mat_khau_${key}`} autoComplete={key === 'old' ? 'current-password' : 'new-password'} className={`w-full ${INPUT_CLASS} ${errors[key] ? 'border-red-500' : ''}`} value={value} onChange={(e) => { setter(e.target.value); setErrors({}); }} />
-      <FieldError message={errors[key]} />
-    </div>
-  );
+  const status = (key) => (errors[key] ? { type: 'error', message: errors[key] } : undefined);
 
   return (
-    <form onSubmit={submit} noValidate className="mx-auto mt-24 w-full max-w-sm space-y-3 rounded-2xl border border-border bg-surface p-6">
-      <h1 className="text-xl font-semibold">Bạn cần đổi mật khẩu</h1>
-      <input type="text" name="username" autoComplete="username" value={user?.ten_dang_nhap ?? ''} readOnly hidden />
-      <p className="text-sm text-muted">Tài khoản này đang dùng mật khẩu mặc định/do quản trị viên đặt. Hãy đặt mật khẩu mới để tiếp tục.</p>
-      {field('old', 'Mật khẩu hiện tại', oldPassword, setOldPassword)}
-      {field('new', 'Mật khẩu mới', newPassword, setNewPassword)}
-      {field('confirm', 'Nhập lại mật khẩu mới', confirm, setConfirm)}
-      {errors.form && <p className="rounded-lg border border-error-border bg-error-bg px-3 py-2 text-sm text-error-text">{errors.form}</p>}
-      <div className="flex gap-2">
-        <button type="submit" className={BUTTON_PRIMARY} disabled={saving}>{saving ? 'Đang lưu...' : 'Đổi mật khẩu'}</button>
-        <button type="button" className={BUTTON_SECONDARY} onClick={logout}>Đăng xuất</button>
+    <div className="flex min-h-screen items-start justify-center bg-(--color-background-body) p-4 pt-24">
+      <div className="w-full max-w-sm">
+        <Card>
+          <form onSubmit={submit} noValidate className="flex flex-col gap-3">
+            <Heading level={1}>Bạn cần đổi mật khẩu</Heading>
+            <input type="text" name="username" autoComplete="username" value={user?.ten_dang_nhap ?? ''} readOnly hidden />
+            <Text color="secondary">Tài khoản này đang dùng mật khẩu mặc định/do quản trị viên đặt. Hãy đặt mật khẩu mới để tiếp tục.</Text>
+            <PasswordField label="Mật khẩu hiện tại" htmlName="mat_khau_old" autoComplete="current-password" value={oldPassword} onChange={(v) => { setOldPassword(v); setErrors({}); }} status={status('old')} />
+            <PasswordField label="Mật khẩu mới" htmlName="mat_khau_new" autoComplete="new-password" value={newPassword} onChange={(v) => { setNewPassword(v); setErrors({}); }} status={status('new')} />
+            <PasswordField label="Nhập lại mật khẩu mới" htmlName="mat_khau_confirm" autoComplete="new-password" value={confirm} onChange={(v) => { setConfirm(v); setErrors({}); }} status={status('confirm')} />
+            {errors.form && <Banner status="error" title={errors.form} />}
+            <div className="flex gap-2">
+              <Button type="submit" variant="primary" label={saving ? 'Đang lưu...' : 'Đổi mật khẩu'} isDisabled={saving} />
+              <Button label="Đăng xuất" onClick={logout} />
+            </div>
+          </form>
+        </Card>
       </div>
-    </form>
+    </div>
   );
 }

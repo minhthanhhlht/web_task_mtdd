@@ -1,14 +1,23 @@
 // Trang tài khoản: đổi mật khẩu của mình; admin quản lý thêm các tài khoản khác.
-import RowMenu from '../components/RowMenu.jsx';
 import { useCallback, useEffect, useState } from 'react';
+import { Badge } from '@astryxdesign/core/Badge';
+import { Banner } from '@astryxdesign/core/Banner';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { Selector } from '@astryxdesign/core/Selector';
+import DataTable from '../components/DataTable.jsx';
+import { TextInput } from '@astryxdesign/core/TextInput';
 import { changePassword, createUser, deleteUser, listUsers, updateUser } from '../api.js';
 import { useAuth } from '../components/AuthContext.jsx';
 import { useDialog } from '../components/DialogContext.jsx';
-import FieldError from '../components/FieldError.jsx';
-import PasswordInput from '../components/PasswordInput.jsx';
+import PasswordField from '../components/PasswordField.jsx';
+import RowMenu from '../components/RowMenu.jsx';
 import { ErrorBox } from '../components/StateMessage.jsx';
 import { useToast } from '../components/Toast.jsx';
-import { BUTTON_DANGER, BUTTON_PRIMARY, BUTTON_SECONDARY, CARD_CLASS, formatDateTime, INPUT_CLASS, TABLE_BORDER_CLASS } from '../constants.js';
+import { formatDateTime } from '../constants.js';
+
+const ROLE_OPTIONS = ['user', 'admin'];
 
 // Khối đổi mật khẩu của chính mình
 function ChangeOwnPassword() {
@@ -40,22 +49,26 @@ function ChangeOwnPassword() {
   };
 
   const field = (key, label) => (
-    <div>
-      <label htmlFor={`own-${key}`} className="mb-1 block text-sm">{label}</label>
-      <PasswordInput id={`own-${key}`} name={`mat_khau_${key}`} autoComplete={key === 'old' ? 'current-password' : 'new-password'} className={`w-full ${INPUT_CLASS} ${errors[key] ? 'border-red-500' : ''}`} value={values[key]} onChange={(e) => { setValues({ ...values, [key]: e.target.value }); setErrors({}); }} />
-      <FieldError message={errors[key]} />
-    </div>
+    <PasswordField
+      label={label} htmlName={`mat_khau_${key}`} autoComplete={key === 'old' ? 'current-password' : 'new-password'}
+      value={values[key]} onChange={(v) => { setValues({ ...values, [key]: v }); setErrors({}); }}
+      status={errors[key] ? { type: 'error', message: errors[key] } : undefined}
+    />
   );
   return (
-    <form onSubmit={submit} noValidate className={`${CARD_CLASS} max-w-xl space-y-3`}>
-      <h2 className="text-lg font-semibold">Đổi mật khẩu của tôi</h2>
-      <input type="text" name="username" autoComplete="username" value={me.ten_dang_nhap} readOnly hidden />
-      {field('old', 'Mật khẩu hiện tại')}
-      {field('next', 'Mật khẩu mới')}
-      {field('confirm', 'Nhập lại mật khẩu mới')}
-      {errors.form && <p className="rounded-lg border border-error-border bg-error-bg px-3 py-2 text-sm text-error-text">{errors.form}</p>}
-      <button type="submit" className={BUTTON_PRIMARY} disabled={saving}>{saving ? 'Đang lưu...' : 'Đổi mật khẩu'}</button>
-    </form>
+    <div className="max-w-xl">
+      <Card>
+        <form onSubmit={submit} noValidate className="flex flex-col gap-3">
+          <Heading level={2}>Đổi mật khẩu của tôi</Heading>
+          <input type="text" name="username" autoComplete="username" value={me.ten_dang_nhap} readOnly hidden />
+          {field('old', 'Mật khẩu hiện tại')}
+          {field('next', 'Mật khẩu mới')}
+          {field('confirm', 'Nhập lại mật khẩu mới')}
+          {errors.form && <Banner status="error" title={errors.form} />}
+          <div><Button type="submit" variant="primary" label={saving ? 'Đang lưu...' : 'Đổi mật khẩu'} isDisabled={saving} /></div>
+        </form>
+      </Card>
+    </div>
   );
 }
 
@@ -82,7 +95,7 @@ function ManageUsers() {
     if (await run(() => createUser(form), 'Đã tạo tài khoản (người dùng sẽ phải đổi mật khẩu ở lần đăng nhập đầu)')) setForm({ ten_dang_nhap: '', mat_khau: '', vai_tro: 'user' });
   };
 
-  // Đặt lại mật khẩu bằng hộp nhập của ứng dụng
+  // Đặt lại mật khẩu bằng hộp nhập của ứng dụng (admin đặt mật khẩu tạm tối thiểu 4 ký tự)
   const resetPassword = async (u) => {
     const password = await dialog.prompt({
       title: `Đặt lại mật khẩu cho ${u.ten_dang_nhap}`, inputLabel: 'Mật khẩu mới', inputType: 'password', confirmLabel: 'Đặt lại',
@@ -96,48 +109,52 @@ function ManageUsers() {
     if (ok) run(() => deleteUser(u.id), 'Đã xóa tài khoản');
   };
 
+  const columns = [
+    {
+      key: 'ten_dang_nhap', header: 'Tên đăng nhập',
+      renderCell: (u) => <span>{u.ten_dang_nhap}{u.bat_buoc_doi_mat_khau ? <span className="ml-2"><Badge variant="warning" label="chưa đổi mật khẩu" /></span> : null}</span>,
+    },
+    {
+      key: 'vai_tro', header: 'Vai trò',
+      renderCell: (u) => <Selector label={`Vai trò của ${u.ten_dang_nhap}`} isLabelHidden width={120} value={u.vai_tro} options={ROLE_OPTIONS} onChange={(v) => v && run(() => updateUser(u.id, { vai_tro: v }), 'Đã đổi vai trò')} />,
+    },
+    { key: 'tao_luc', header: 'Tạo lúc', renderCell: (u) => <span className="tabular-nums">{formatDateTime(u.tao_luc)}</span> },
+    { key: 'so_phien', header: 'Số phiên', renderCell: (u) => <span className="tabular-nums">{u.so_phien}</span> },
+    {
+      key: 'thao_tac', header: '',
+      renderCell: (u) => (
+        <RowMenu items={[
+          { label: 'Đặt lại mật khẩu', icon: 'key', onClick: () => resetPassword(u) },
+          { label: 'Xóa tài khoản', icon: 'trash', danger: true, disabled: u.ten_dang_nhap === me.ten_dang_nhap, onClick: () => remove(u) },
+        ]}
+        />
+      ),
+    },
+  ];
+
   return (
-    <div className={`${CARD_CLASS} space-y-3`}>
-      <h2 className="text-lg font-semibold">Quản lý tài khoản</h2>
-      <form onSubmit={add} noValidate className="flex flex-wrap items-end gap-3">
-        <div><label htmlFor="new-user-name" className="mb-1 block text-sm">Tên đăng nhập</label><input id="new-user-name" name="ten_dang_nhap" autoComplete="off" className={INPUT_CLASS} value={form.ten_dang_nhap} onChange={(e) => setForm({ ...form, ten_dang_nhap: e.target.value })} /></div>
-        <div><label htmlFor="new-user-password" className="mb-1 block text-sm">Mật khẩu</label><input id="new-user-password" name="mat_khau" autoComplete="off" type="text" className={INPUT_CLASS} value={form.mat_khau} onChange={(e) => setForm({ ...form, mat_khau: e.target.value })} /></div>
-        <div>
-          <label htmlFor="new-user-role" className="mb-1 block text-sm">Vai trò</label>
-          <select id="new-user-role" name="vai_tro" className={INPUT_CLASS} value={form.vai_tro} onChange={(e) => setForm({ ...form, vai_tro: e.target.value })}><option value="user">user</option><option value="admin">admin</option></select>
-        </div>
-        <button type="submit" className={BUTTON_PRIMARY}>Thêm tài khoản</button>
-      </form>
-      <ErrorBox message={error} onRetry={load} />
-      <div className="overflow-x-auto">
-        <table className={`w-full text-sm ${TABLE_BORDER_CLASS}`}>
-          <thead className="bg-surface-hover text-left"><tr><th className="px-3 py-1.5">Tên đăng nhập</th><th className="px-3 py-1.5">Vai trò</th><th className="px-3 py-1.5">Tạo lúc</th><th className="px-3 py-1.5">Số phiên</th><th className="px-3 py-1.5" /></tr></thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td className="px-3 py-1.5">{u.ten_dang_nhap}{u.bat_buoc_doi_mat_khau ? <span className="ml-2 text-xs text-warning">(chưa đổi mật khẩu)</span> : null}</td>
-                <td className="px-3 py-1.5">
-                  <select aria-label={`Vai trò của ${u.ten_dang_nhap}`} name={`vai_tro_${u.id}`} className={INPUT_CLASS} value={u.vai_tro} onChange={(e) => run(() => updateUser(u.id, { vai_tro: e.target.value }), 'Đã đổi vai trò')}><option value="user">user</option><option value="admin">admin</option></select>
-                </td>
-                <td className="px-3 py-1.5">{formatDateTime(u.tao_luc)}</td>
-                <td className="px-3 py-1.5">{u.so_phien}</td>
-                <td className="whitespace-nowrap px-3 py-1.5">
-                  <RowMenu items={[{ label: 'Đặt lại mật khẩu', icon: 'key', onClick: () => resetPassword(u) }, { label: 'Xóa tài khoản', icon: 'trash', danger: true, disabled: u.ten_dang_nhap === me.ten_dang_nhap, title: u.ten_dang_nhap === me.ten_dang_nhap ? 'Không thể tự xóa tài khoản đang đăng nhập' : undefined, onClick: () => remove(u) }]} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <Card>
+      <div className="flex flex-col gap-3">
+        <Heading level={2}>Quản lý tài khoản</Heading>
+        <form onSubmit={add} noValidate className="flex flex-wrap items-end gap-3">
+          <TextInput label="Tên đăng nhập" htmlName="ten_dang_nhap" autoComplete="off" value={form.ten_dang_nhap} onChange={(v) => setForm({ ...form, ten_dang_nhap: v })} />
+          {/* Mật khẩu hiện chữ rõ vì admin cần đọc để đưa cho người dùng */}
+          <TextInput label="Mật khẩu" htmlName="mat_khau" autoComplete="off" value={form.mat_khau} onChange={(v) => setForm({ ...form, mat_khau: v })} />
+          <Selector label="Vai trò" width={120} value={form.vai_tro} options={ROLE_OPTIONS} onChange={(v) => setForm({ ...form, vai_tro: v ?? 'user' })} />
+          <Button type="submit" variant="primary" label="Thêm tài khoản" />
+        </form>
+        <ErrorBox message={error} onRetry={load} />
+        <DataTable minWidth={600} data={users} columns={columns} idKey="id" density="compact" />
       </div>
-    </div>
+    </Card>
   );
 }
 
 export default function Accounts() {
   const { user } = useAuth();
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Tài khoản</h1>
+    <div className="flex flex-col gap-4">
+      <Heading level={1}>Tài khoản</Heading>
       <ChangeOwnPassword />
       {user.vai_tro === 'admin' && <ManageUsers />}
     </div>

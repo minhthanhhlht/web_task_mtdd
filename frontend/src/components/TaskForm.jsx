@@ -1,30 +1,35 @@
-// Form thông tin task dùng cho cả thêm mới và sửa (có kiểm tra phía client).
-import MenuIcon from './MenuIcon.jsx';
-import { Children, cloneElement, useState } from 'react';
+// Form thông tin task dùng cho cả thêm mới và sửa (có kiểm tra phía client), dựng bằng các ô nhập của Astryx.
+import { useState } from 'react';
+import { Banner } from '@astryxdesign/core/Banner';
+import { Button } from '@astryxdesign/core/Button';
+import { DateTimeInput } from '@astryxdesign/core/DateTimeInput';
+import { Field } from '@astryxdesign/core/Field';
+import { Link } from '@astryxdesign/core/Link';
+import { NumberInput } from '@astryxdesign/core/NumberInput';
+import { Selector } from '@astryxdesign/core/Selector';
+import { TextInput } from '@astryxdesign/core/TextInput';
 import {
-  BUTTON_PRIMARY, fromInputDateTime, INPUT_CLASS, isHttpUrl, LINK_MESSAGE, PWIRE_NUMBER_MESSAGE, PWIRE_NUMBER_PATTERN,
+  fromInputDateTime, isHttpUrl, LINK_MESSAGE, PWIRE_NUMBER_MESSAGE, PWIRE_NUMBER_PATTERN,
   sanitizePwireNumber, TASK_CODE_PREFIX, toInputDateTime,
 } from '../constants.js';
 import useDataItems from '../useDataItems.js';
-import DateTimeInput from './DateTimeInput.jsx';
-import FieldError from './FieldError.jsx';
 import RichNoteEditor from './RichNoteEditor.jsx';
 import { useStatuses } from './StatusContext.jsx';
 
-// Một ô có nhãn, bọc lỗi bên dưới
-function Field({ label, name, error, children }) {
-  // Gắn id/name vào ô nhập đầu tiên để nhãn bấm được và trình duyệt gợi ý đúng
-  const [control, ...rest] = Children.toArray(children);
-  const id = `task-${name}`;
+// Ô ngày giờ 24 giờ, tuần bắt đầu thứ Hai, lịch dạng popover
+function DateTimeField({ label, value, onChange, error, isRequired, hasClear }) {
   return (
-    <div>
-      <label htmlFor={id} className="mb-1 block text-sm font-medium">
-        {label.endsWith(' *') ? <>{label.slice(0, -2)} <span className="text-error-strong" aria-hidden="true">*</span></> : label}
-      </label>
-      {cloneElement(control, { id, name })}
-      {rest}
-      <FieldError message={error} />
-    </div>
+    <DateTimeInput
+      label={label}
+      value={value || undefined}
+      onChange={(next) => onChange(next ? String(next).slice(0, 16) : '')}
+      hourFormat="24h"
+      weekStartsOn="mon"
+      presentation="popover"
+      isRequired={isRequired}
+      hasClear={hasClear}
+      status={error ? { type: 'error', message: error } : undefined}
+    />
   );
 }
 
@@ -40,7 +45,7 @@ export default function TaskForm({ initialValues, showProgress = false, submitLa
     nguoi_giao: initialValues.nguoi_giao ?? '',
     dev_cross_check: initialValues.dev_cross_check ?? '',
     link_test_case: initialValues.link_test_case ?? '',
-    tien_do: String(initialValues.tien_do ?? 0),
+    tien_do: initialValues.tien_do ?? 0,
     trang_thai: initialValues.trang_thai ?? '',
     ghi_chu: initialValues.ghi_chu ?? '',
   }));
@@ -53,6 +58,7 @@ export default function TaskForm({ initialValues, showProgress = false, submitLa
     setValues((current) => ({ ...current, [field]: value }));
     setErrors((current) => ({ ...current, [field]: '' }));
   };
+  const statusOf = (field) => (errors[field] ? { type: 'error', message: errors[field] } : undefined);
 
   // Kiểm tra phía client; trả object lỗi theo ô
   const validate = () => {
@@ -66,8 +72,8 @@ export default function TaskForm({ initialValues, showProgress = false, submitLa
     const link = values.link_test_case.trim();
     if (link && link !== initialValues.link_test_case && !isHttpUrl(link)) found.link_test_case = LINK_MESSAGE;
     if (showProgress) {
-      const progress = Number(values.tien_do);
-      if (values.tien_do === '' || !Number.isInteger(progress) || progress < 0 || progress > 100) found.tien_do = 'Tiến độ phải là số nguyên từ 0 đến 100';
+      const progress = values.tien_do;
+      if (progress === null || progress === undefined || !Number.isInteger(progress) || progress < 0 || progress > 100) found.tien_do = 'Tiến độ phải là số nguyên từ 0 đến 100';
       else if (getStatus(values.trang_thai)?.yeu_cau_hoan_tat && progress !== 100) found.tien_do = `Chuyển sang ${values.trang_thai} thì tiến độ phải là 100%`;
     }
     return found;
@@ -107,60 +113,43 @@ export default function TaskForm({ initialValues, showProgress = false, submitLa
 
   const devOptions = devItems.map((item) => item.ten);
   if (values.dev_cross_check && !devOptions.includes(values.dev_cross_check)) devOptions.push(values.dev_cross_check);
-  const inputClass = (field) => `w-full ${INPUT_CLASS} ${errors[field] ? 'border-red-500' : ''}`;
 
   return (
-    <form onSubmit={submit} noValidate className="space-y-4">
+    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
       <div className={`grid gap-3 ${gridClass}`}>
-        <Field label="Số Pwire *" name="ma_task" error={errors.ma_task}>
-          <input className={inputClass('ma_task')} value={values.ma_task} onChange={(e) => set('ma_task', sanitizePwireNumber(e.target.value, initialValues.ma_task))} />
-        </Field>
-        <Field label="Tên task *" name="ten" error={errors.ten}>
-          <input className={inputClass('ten')} value={values.ten} onChange={(e) => set('ten', e.target.value)} />
-        </Field>
-        <Field label="Ngày giờ nhận *" name="ngay_nhan" error={errors.ngay_nhan}>
-          <DateTimeInput value={values.ngay_nhan} onChange={(v) => set('ngay_nhan', v)} hasError={Boolean(errors.ngay_nhan)} />
-        </Field>
-        <Field label="Deadline" name="deadline" error={errors.deadline}>
-          <DateTimeInput value={values.deadline} onChange={(v) => set('deadline', v)} clearable />
-        </Field>
-        <Field label="Thực tế dev hoàn thành" name="dev_hoan_thanh_thuc_te" error={errors.dev_hoan_thanh_thuc_te}>
-          <DateTimeInput value={values.dev_hoan_thanh_thuc_te} onChange={(v) => set('dev_hoan_thanh_thuc_te', v)} clearable />
-        </Field>
-        <Field label="Người giao *" name="nguoi_giao" error={errors.nguoi_giao}>
-          <input className={inputClass('nguoi_giao')} value={values.nguoi_giao} onChange={(e) => set('nguoi_giao', e.target.value)} />
-        </Field>
-        <Field label="Dev Cross check" name="dev_cross_check" error={errors.dev_cross_check}>
-          <select className={inputClass('dev_cross_check')} value={values.dev_cross_check} onChange={(e) => set('dev_cross_check', e.target.value)}>
-            <option value="">— Chưa chọn —</option>
-            {devOptions.map((name) => <option key={name} value={name}>{name}</option>)}
-          </select>
-        </Field>
-        <Field label="Link Pwire" name="link_test_case" error={errors.link_test_case}>
-          <input className={inputClass('link_test_case')} placeholder="https://..." value={values.link_test_case} onChange={(e) => set('link_test_case', e.target.value)} />
-          {isHttpUrl(values.link_test_case) && (
-            <a href={values.link_test_case.trim()} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex h-8 items-center gap-1 text-xs text-primary underline-offset-4 hover:text-primary-hover hover:underline"><MenuIcon name="external" className="size-3.5" /> Mở link Pwire</a>
-          )}
-        </Field>
+        <TextInput label="Số Pwire" isRequired htmlName="ma_task" value={values.ma_task} onChange={(v) => set('ma_task', sanitizePwireNumber(v, initialValues.ma_task))} status={statusOf('ma_task')} />
+        <TextInput label="Tên task" isRequired htmlName="ten" value={values.ten} onChange={(v) => set('ten', v)} status={statusOf('ten')} />
+        <DateTimeField label="Ngày giờ nhận" isRequired value={values.ngay_nhan} onChange={(v) => set('ngay_nhan', v)} error={errors.ngay_nhan} />
+        <DateTimeField label="Deadline" hasClear value={values.deadline} onChange={(v) => set('deadline', v)} error={errors.deadline} />
+        <DateTimeField label="Thực tế dev hoàn thành" hasClear value={values.dev_hoan_thanh_thuc_te} onChange={(v) => set('dev_hoan_thanh_thuc_te', v)} error={errors.dev_hoan_thanh_thuc_te} />
+        <TextInput label="Người giao" isRequired htmlName="nguoi_giao" value={values.nguoi_giao} onChange={(v) => set('nguoi_giao', v)} status={statusOf('nguoi_giao')} />
+        <Selector
+          label="Dev Cross check" value={values.dev_cross_check} hasSearch
+          options={[{ value: '', label: '— Chưa chọn —' }, ...devOptions.map((name) => ({ value: name, label: name }))]}
+          onChange={(v) => set('dev_cross_check', v ?? '')}
+          status={statusOf('dev_cross_check')}
+        />
+        <div>
+          <TextInput label="Link Pwire" htmlName="link_test_case" placeholder="https://..." value={values.link_test_case} onChange={(v) => set('link_test_case', v)} status={statusOf('link_test_case')} />
+          {isHttpUrl(values.link_test_case) && <div className="mt-1"><Link href={values.link_test_case.trim()} isExternalLink>Mở link Pwire</Link></div>}
+        </div>
         {showProgress && (
           <>
-            <Field label="Tiến độ (%)" name="tien_do" error={errors.tien_do}>
-              <input type="number" min="0" max="100" className={inputClass('tien_do')} value={values.tien_do} onChange={(e) => set('tien_do', e.target.value)} />
-            </Field>
-            <Field label="Trạng thái" name="trang_thai" error={errors.trang_thai}>
-              <select className={inputClass('trang_thai')} value={values.trang_thai} onChange={(e) => set('trang_thai', e.target.value)}>
-                {statuses.map((status) => <option key={status.id} value={status.ten}>{status.ten}</option>)}
-              </select>
-            </Field>
+            <NumberInput label="Tiến độ (%)" min={0} max={100} isIntegerOnly value={values.tien_do} onChange={(v) => set('tien_do', v)} status={statusOf('tien_do')} />
+            <Selector
+              label="Trạng thái" value={values.trang_thai}
+              options={statuses.map((status) => ({ value: status.ten, label: status.ten }))}
+              onChange={(v) => set('trang_thai', v ?? '')}
+              status={statusOf('trang_thai')}
+            />
           </>
         )}
       </div>
-      <div>
-        <p id="task-ghi_chu-label" className="mb-1 block text-sm font-medium">Ghi chú</p>
-        <RichNoteEditor value={values.ghi_chu} onChange={(html) => set('ghi_chu', html)} />
-      </div>
-      {formError && <p className="rounded-lg border border-error-border bg-error-bg px-3 py-2 text-sm text-error-text">{formError}</p>}
-      <button type="submit" className={BUTTON_PRIMARY} disabled={saving}>{saving ? 'Đang lưu...' : submitLabel}</button>
+      <Field label="Ghi chú" inputID="task-ghi_chu">
+        <RichNoteEditor id="task-ghi_chu" value={values.ghi_chu} onChange={(html) => set('ghi_chu', html)} />
+      </Field>
+      {formError && <Banner status="error" title={formError} />}
+      <div><Button type="submit" variant="primary" label={saving ? 'Đang lưu...' : submitLabel} isDisabled={saving} /></div>
     </form>
   );
 }

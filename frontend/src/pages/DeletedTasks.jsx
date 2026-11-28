@@ -1,20 +1,23 @@
-// Trang "Task đã xóa" (chỉ admin): danh sách task xóa mềm và nút Khôi phục.
-import { useCallback, useEffect, useState } from 'react';
+// Trang "Task đã xóa" (chỉ admin): danh sách task xóa mềm, nút Khôi phục và Xóa vĩnh viễn.
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button } from '@astryxdesign/core/Button';
+import { EmptyState } from '@astryxdesign/core/EmptyState';
+import { Heading } from '@astryxdesign/core/Heading';
+import { useTableSortable } from '@astryxdesign/core/Table';
+import DataTable from '../components/DataTable.jsx';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
 import { listDeletedTasks, purgeDeletedTask, restoreDeletedTask } from '../api.js';
 import { useDialog } from '../components/DialogContext.jsx';
-import MenuIcon from '../components/MenuIcon.jsx';
 import Pagination from '../components/Pagination.jsx';
-import RowMenu from '../components/RowMenu.jsx';
 import ProgressBar from '../components/ProgressBar.jsx';
+import RowMenu from '../components/RowMenu.jsx';
 import { ErrorBox, Loading } from '../components/StateMessage.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
 import { useToast } from '../components/Toast.jsx';
 import UserChip from '../components/UserChip.jsx';
-import { BUTTON_SMALL, formatDateTime, INPUT_CLASS, TABLE_BORDER_CLASS } from '../constants.js';
+import { formatDateTime } from '../constants.js';
 import usePageSize from '../usePageSize.js';
-
-// Cột bảng: [khóa sắp xếp, nhãn]
-const COLUMNS = [['chu_so_huu', 'PIC'], ['ma_task', 'Số Pwire'], ['ten', 'Tên'], ['trang_thai', 'Trạng thái'], ['tien_do', 'Tiến độ'], ['xoa_luc', 'Xóa lúc'], ['nguoi_xoa', 'Người xóa']];
 
 export default function DeletedTasks() {
   const toast = useToast();
@@ -45,15 +48,16 @@ export default function DeletedTasks() {
   }, [q, page, limit, sort]);
   useEffect(() => { load(); }, [load]);
 
-  // Bấm tiêu đề cột: đổi chiều nếu đang sắp theo cột đó, không thì sắp tăng
-  const toggleSort = (key) => {
-    setPage(1);
-    setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
-  };
-  const sortMark = (key) => <MenuIcon name={sort.key === key ? (sort.dir === 'asc' ? 'sort-up' : 'sort-down') : 'sort-none'} className="size-3.5" />;
+  const sortPlugin = useTableSortable({
+    sort: sort.key ? [{ sortKey: sort.key, direction: sort.dir === 'asc' ? 'ascending' : 'descending' }] : [],
+    onSortChange: (next) => {
+      setPage(1);
+      setSort(next.length ? { key: next[0].sortKey, dir: next[0].direction === 'ascending' ? 'asc' : 'desc' } : { key: 'xoa_luc', dir: 'desc' });
+    },
+  });
 
   // Khôi phục một task sau khi xác nhận
-  const restore = async (task) => {
+  const restore = useCallback(async (task) => {
     const ok = await dialog.confirm({ title: 'Khôi phục task', message: `Khôi phục task ${task.ma_task} - ${task.ten}? Task sẽ quay lại danh sách của PIC với đầy đủ dữ liệu cũ.`, confirmLabel: 'Khôi phục' });
     if (!ok) return;
     setBusyId(task.id);
@@ -66,10 +70,10 @@ export default function DeletedTasks() {
     } finally {
       setBusyId(null);
     }
-  };
+  }, [dialog, toast, load]);
 
   // Xóa vĩnh viễn một task sau khi xác nhận (không hoàn tác được)
-  const purge = async (task) => {
+  const purge = useCallback(async (task) => {
     const ok = await dialog.confirm({ title: 'Xóa vĩnh viễn task', message: `Xóa vĩnh viễn task ${task.ma_task} - ${task.ten}? Toàn bộ checklist, vấn đề, tiến độ và lịch sử của task cũng bị xóa. Không thể hoàn tác.`, confirmLabel: 'Xóa vĩnh viễn', danger: true });
     if (!ok) return;
     setBusyId(task.id);
@@ -82,51 +86,40 @@ export default function DeletedTasks() {
     } finally {
       setBusyId(null);
     }
-  };
+  }, [dialog, toast, load]);
+
+  const columns = useMemo(() => [
+    { key: 'chu_so_huu', header: 'PIC', sortable: true, renderCell: (t) => (t.chu_so_huu ? <UserChip name={t.chu_so_huu} /> : '—') },
+    { key: 'ma_task', header: 'Số Pwire', sortable: true, renderCell: (t) => <span className="whitespace-nowrap">{t.ma_task}</span> },
+    { key: 'ten', header: 'Tên', sortable: true, renderCell: (t) => <span className="inline-block max-w-64 truncate align-bottom" title={t.ten}>{t.ten}</span> },
+    { key: 'trang_thai', header: 'Trạng thái', sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
+    { key: 'tien_do', header: 'Tiến độ', sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
+    { key: 'xoa_luc', header: 'Xóa lúc', sortable: true, renderCell: (t) => <span className="whitespace-nowrap tabular-nums">{formatDateTime(t.xoa_luc)}</span> },
+    { key: 'nguoi_xoa', header: 'Người xóa', sortable: true, renderCell: (t) => (t.nguoi_xoa ? <UserChip name={t.nguoi_xoa} /> : '—') },
+    {
+      key: 'thao_tac', header: '',
+      renderCell: (t) => (
+        <span className="inline-flex items-center gap-1">
+          <Button label="Khôi phục" size="sm" isDisabled={busyId === t.id} onClick={() => restore(t)} />
+          <RowMenu items={[{ label: 'Xóa vĩnh viễn', icon: 'trash', danger: true, disabled: busyId === t.id, onClick: () => purge(t) }]} />
+        </span>
+      ),
+    },
+  ], [busyId, restore, purge]);
 
   return (
-    <div>
-      <h1 className="mb-1 text-xl font-semibold">Task đã xóa</h1>
-      <p className="mb-4 text-sm text-muted">Task bị xóa vẫn được giữ lại. Chỉ quản trị viên khôi phục hoặc xóa vĩnh viễn được.</p>
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-        <input className={`min-w-44 flex-1 sm:max-w-sm ${INPUT_CLASS}`} aria-label="Tìm Số Pwire, tên..." name="tim_task_da_xoa" placeholder="Tìm Số Pwire, tên..." title="Tìm theo số Pwire, tên, link, người giao, Dev, ghi chú, PIC" value={search} onChange={(e) => setSearch(e.target.value)} />
+    <div className="flex flex-col gap-3">
+      <Heading level={1}>Task đã xóa</Heading>
+      <Text color="secondary">Task bị xóa vẫn được giữ lại. Chỉ quản trị viên khôi phục hoặc xóa vĩnh viễn được.</Text>
+      <div className="min-w-48 sm:max-w-sm">
+        <TextInput label="Tìm Số Pwire, tên..." isLabelHidden placeholder="Tìm Số Pwire, tên..." startIcon="search" hasClear value={search} onChange={setSearch} htmlName="tim_task_da_xoa" />
       </div>
       <ErrorBox message={error} onRetry={load} />
-      <div className="overflow-x-auto rounded-xl border border-border-strong bg-surface">
-        <table className={`w-full text-sm ${TABLE_BORDER_CLASS}`}>
-          <thead className="bg-surface-hover text-left">
-            <tr>
-              {COLUMNS.map(([key, label]) => (
-                <th key={key} className="whitespace-nowrap px-1.5 py-1">
-                  <button type="button" className="inline-flex h-8 items-center gap-1 font-medium hover:text-foreground" onClick={() => toggleSort(key)}>{label}<span className="text-muted">{sortMark(key)}</span></button>
-                </th>
-              ))}
-              <th className="px-1.5 py-1"><span className="sr-only">Thao tác</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.items.map((task) => (
-              <tr key={task.id} className="align-middle hover:bg-surface-hover">
-                <td className="whitespace-nowrap px-1.5 py-1.5">{task.chu_so_huu ? <UserChip name={task.chu_so_huu} /> : '—'}</td>
-                <td className="whitespace-nowrap px-1.5 py-1.5">{task.ma_task}</td>
-                <td className="max-w-64 truncate px-1.5 py-1.5" title={task.ten}>{task.ten}</td>
-                <td className="px-1.5 py-1.5"><StatusBadge name={task.trang_thai} /></td>
-                <td className="whitespace-nowrap px-1.5 py-1.5"><ProgressBar value={task.tien_do} /></td>
-                <td className="whitespace-nowrap px-1.5 py-1.5 tabular-nums">{formatDateTime(task.xoa_luc)}</td>
-                <td className="whitespace-nowrap px-1.5 py-1.5">{task.nguoi_xoa ? <UserChip name={task.nguoi_xoa} /> : '—'}</td>
-                <td className="whitespace-nowrap px-1.5 py-1.5">
-                  <div className="flex items-center justify-end gap-1">
-                    <button type="button" className={BUTTON_SMALL} disabled={busyId === task.id} onClick={() => restore(task)}>Khôi phục</button>
-                    <RowMenu items={[{ label: 'Xóa vĩnh viễn', icon: 'trash', danger: true, disabled: busyId === task.id, onClick: () => purge(task) }]} />
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        data={data.items} columns={columns} idKey="id" density="compact" hasHover plugins={{ sort: sortPlugin }}
+        emptyState={loading ? false : <EmptyState title={q ? 'Không có task đã xóa nào khớp.' : 'Chưa có task nào bị xóa.'} isCompact />}
+      />
       {loading && <Loading />}
-      {!loading && data.items.length === 0 && <p className="py-4 text-sm text-muted">{q ? 'Không có task đã xóa nào khớp.' : 'Chưa có task nào bị xóa.'}</p>}
       <Pagination total={data.total} page={page} limit={limit} onChangePage={setPage} onChangeLimit={(v) => { changeLimit(v); setPage(1); }} />
     </div>
   );

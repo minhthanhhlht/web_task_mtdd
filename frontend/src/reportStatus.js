@@ -1,14 +1,14 @@
 // Tính nhãn "Cập nhật tiến độ" của một task theo quy tắc giờ chốt 16:30.
 import { REPORT_CUTOFF_TIME } from './constants.js';
 
-// Lớp Tailwind của từng mức nhãn (chỉ nhãn có màu, không tô nền dòng)
-export const REPORT_LEVEL_CLASS = {
-  early: 'bg-warning-bg text-warning ring-1 ring-inset ring-black/5',
-  after: 'bg-success-bg text-success ring-1 ring-inset ring-black/5',
-  unknown_time: 'bg-neutral-bg text-neutral ring-1 ring-inset ring-black/5',
-  pending: 'bg-error-bg text-error-strong ring-1 ring-inset ring-error-border',
-  late: 'bg-error-bg text-error-strong ring-1 ring-inset ring-error-border',
-  missed: 'bg-error-bg text-error-strong ring-1 ring-inset ring-error-border',
+// Biến thể Badge của Astryx cho từng mức nhãn (chỉ nhãn có màu, không tô nền dòng)
+export const REPORT_LEVEL_VARIANT = {
+  early: 'warning',
+  after: 'success',
+  unknown_time: 'neutral',
+  pending: 'error',
+  late: 'error',
+  missed: 'error',
 };
 
 // Ngày local dạng 'YYYY-MM-DD'

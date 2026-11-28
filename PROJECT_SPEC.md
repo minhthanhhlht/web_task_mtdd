@@ -32,12 +32,12 @@ Mọi lời gọi SQL **MUST** dùng tham số `?` (chỉ riêng tên cột/bi�
 | --- | --- |
 | Backend | Node.js LTS ≥ 20, Express 5, better-sqlite3 (module ESM, `"type": "module"`) |
 | Database | SQLite, một file `backend/tasks.db` |
-| Frontend | React 19, react-router-dom 7, Tailwind CSS 4 (plugin `@tailwindcss/vite`), Vite, `@vitejs/plugin-react` |
-| Ngôn ngữ | JavaScript (không TypeScript, không ORM, không thư viện UI dựng sẵn, không thư viện icon/editor/date-picker) |
+| Frontend | React 19, react-router-dom 7, Vite, `@vitejs/plugin-react`; giao diện dựng bằng **Astryx** (`@astryxdesign/core`, `@astryxdesign/theme-neutral`, `@stylexjs/stylex`, giấy phép MIT) cùng Tailwind CSS 4 (`@tailwindcss/vite`) cho bố cục; icon từ `lucide-react` |
+| Ngôn ngữ | JavaScript (không TypeScript, không ORM). Giao diện dùng component của Astryx thay vì tự viết; không thêm thư viện UI/icon/date-picker khác ngoài Astryx và `lucide-react` (đã là phụ thuộc của theme Astryx). Trình soạn ghi chú vẫn tự viết (xem 7.4) |
 
 - Đăng nhập chỉ dùng module `crypto` của Node (scrypt, SHA-256, randomBytes).
-- **Cấm** `window.confirm / prompt / alert`: dùng modal của ứng dụng (`useDialog`) và toast (`useToast`).
-- **Cấm** viết CSS component riêng; chỉ Tailwind. File CSS duy nhất `frontend/src/index.css` chứa `@import "tailwindcss";`, khối `@theme` khai báo **token giao diện** (màu, font, đổ bóng theo evondevKit, xem 7.6) và vài dòng `@layer base` (nền trang, cỡ chữ, con trỏ).
+- **Cấm** `window.confirm / prompt / alert`: dùng `useDialog` (AlertDialog/Dialog của Astryx) và `useToast` (Toast của Astryx).
+- **Cấm** viết CSS component riêng. File CSS duy nhất `frontend/src/index.css` chỉ khai báo thứ tự `@layer` và nạp CSS của Astryx cùng cầu nối Tailwind (xem 7.6); màu, bo góc, đổ bóng, cỡ chữ đều lấy từ token của Astryx, bố cục dùng utility Tailwind.
 - Mọi lời gọi API nằm trong `frontend/src/api.js`; component không gọi `fetch`.
 - Mọi lời gọi API ở giao diện phải hiển thị trạng thái đang tải và lỗi.
 - Danh sách phân trang/lọc/tìm/sắp xếp **do backend làm**, không lọc cả nghìn dòng ở trình duyệt.
@@ -59,13 +59,13 @@ dashboard_personal/
   frontend/
     package.json  vite.config.js  index.html
     src/
-      main.jsx  App.jsx  index.css  api.js  constants.js  reportStatus.js  noteHtml.js
+      main.jsx  App.jsx  index.css  astryx-themes.js (sinh bởi `astryx theme add`)  api.js  constants.js  reportStatus.js  noteHtml.js
       useDataItems.js  usePageSize.js  useReportSummary.js
-      pages/        TaskList TaskNew TaskDetail EndOfDay Archive Checklist StatusManager DataManager Accounts Login
+      pages/        TaskList TaskNew TaskDetail EndOfDay Archive Checklist StatusManager DataManager DeletedTasks Accounts Login ForceChangePassword
       components/   ApplyTemplatePanel AuthContext AuthGate ChecklistBox ChecklistOverview ChecklistTemplateEditor
-                    DateTimeInput DialogContext FieldError IssueForm IssueRow MenuIcon Pagination PicTransfer
-                    ProgressBar PwireLink RequireAdmin RichNoteEditor SelectAllCheckbox StateMessage StatusBadge
-                    StatusContext TaskForm TaskHistory TaskListView TaskPicker Toast
+                    DataTable DialogContext IssueForm IssueRow Pagination PasswordField PicTransfer ProgressBar
+                    PwireLink RequireAdmin RichNoteEditor RouterLink RowMenu SelectAllCheckbox StateMessage StatusBadge
+                    StatusContext TaskForm TaskHistory TaskListView TaskPicker TaskStats Toast UserChip
 ```
 
 - `.gitignore`: `tasks.db`, `tasks.db-*`, `node_modules`, `dist`, `backend/backups`, `.env`, `backend/seed-data.json`.
@@ -76,7 +76,7 @@ dashboard_personal/
   ```
   `backend/.env.example` có đúng hai khóa này (commit được, để người khác biết cần khai báo gì). Biến môi trường thật của hệ điều hành, nếu có, được ưu tiên hơn file.
 - `backend/package.json`: scripts `start` (`node server.js`), `backup` (`node backup.js`), `create-user` (`node create-user.js`); dependencies `better-sqlite3 ^13`, `express ^5`.
-- `frontend/package.json`: scripts `dev` (`vite`), `build` (`vite build`), `preview`; dependencies `react ^19`, `react-dom ^19`, `react-router-dom ^7`; devDependencies `@tailwindcss/vite ^4`, `@vitejs/plugin-react`, `tailwindcss ^4`, `vite`.
+- `frontend/package.json`: scripts `dev` (`vite`), `build` (`vite build`), `preview`; dependencies `react ^19`, `react-dom ^19`, `react-router-dom ^7`, `@astryxdesign/core`, `@astryxdesign/theme-neutral`, `@astryxdesign/cli`, `@stylexjs/stylex ^0.19`, `lucide-react`; devDependencies `@tailwindcss/vite ^4`, `@vitejs/plugin-react`, `tailwindcss ^4`, `vite`. Phiên bản Astryx ghim cùng nhau (hiện 0.7.17). Không cần plugin StyleX cho Vite vì dùng stylesheet dựng sẵn của Astryx.
 - `frontend/vite.config.js`: plugins `[react(), tailwindcss()]`; `server: { host: '127.0.0.1', proxy: { '/api': 'http://127.0.0.1:6021' } }`.
 - `frontend/index.html`: `<html lang="vi">`, title `Quản lý task`, `<body class="bg-background text-foreground">`, `<div id="root">`, script `/src/main.jsx`.
 - Sau `npm run build` Express phục vụ luôn `frontend/dist` (static + mọi đường dẫn không phải `/api/` trả `index.html` để React Router xử lý).
@@ -108,7 +108,7 @@ dashboard_personal/
 | 17 | CLOSED | green | **1** | **1** |
 | 18 | CANCELED | gray | **1** | 0 |
 
-Màu cho phép: `gray, blue, orange, purple, green, red, yellow`. Lớp Tailwind của nhãn trạng thái (frontend, `STATUS_COLOR_OPTIONS`, huy hiệu pill có chấm tròn và viền mờ `ring-1 ring-inset ring-black/5`): gray `bg-zinc-100 text-zinc-600`; blue `bg-blue-50 text-blue-700`; orange `bg-orange-50 text-orange-700`; purple `bg-violet-50 text-violet-700`; green `bg-emerald-50 text-emerald-700`; red `bg-red-50 text-red-700`; yellow `bg-amber-50 text-amber-700`. Nhãn tiếng Việt: Xám, Xanh dương, Cam, Tím, Xanh lá, Đỏ, Vàng.
+Màu cho phép: `gray, blue, orange, purple, green, red, yellow`. Nhãn trạng thái là `Badge` của Astryx (`STATUS_COLOR_OPTIONS` ánh xạ màu → `variant`): gray `neutral`, blue `blue`, orange `orange`, purple `purple`, green `green`, red `red`, yellow `yellow`. Nhãn tiếng Việt: Xám, Xanh dương, Cam, Tím, Xanh lá, Đỏ, Vàng.
 
 **Mẫu checklist mặc định (11 mục, nạp vào `checklist_templates` khi bảng còn trống):**
 1. Comment nhận task trên Pwire
@@ -423,7 +423,7 @@ Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị th�
 
 ### 7.1 Khởi động và providers (`main.jsx`)
 
-`StrictMode > BrowserRouter > ToastProvider > DialogProvider > AuthProvider > AuthGate > StatusProvider > App`.
+`StrictMode > BrowserRouter > Theme (Astryx, mode light) > InternationalizationProvider (locale vi-VN, bản dịch `@astryxdesign/core/locales/vi-VN.generated.js`) > LinkProvider (RouterLink: đường dẫn nội bộ qua react-router, http/mailto/tel dùng thẻ `<a>`) > ToastProvider (LayerProvider của Astryx) > DialogProvider > AuthProvider > AuthGate > StatusProvider > App`. `index.css` phải là file CSS được import đầu tiên.
 
 `AuthGate`: gọi `GET /api/auth/me`; chưa đăng nhập → hiện `Login`; đã đăng nhập mà `user.bat_buoc_doi_mat_khau = true` → hiện **màn hình `ForceChangePassword` thay cho toàn bộ ứng dụng** (không có sidebar/menu), gồm tiêu đề "Bạn cần đổi mật khẩu", dòng giải thích "Tài khoản này đang dùng mật khẩu mặc định/do quản trị viên đặt. Hãy đặt mật khẩu mới để tiếp tục.", ô mật khẩu hiện tại, mật khẩu mới, nhập lại (kiểm tra khớp, ≥ 8 ký tự, khác mật khẩu hiện tại; lỗi đỏ dưới ô), nút "Đổi mật khẩu" và nút phụ "Đăng xuất"; đổi xong → tải lại `me` rồi vào ứng dụng bình thường. Khi mọi API khác trả 403 `Bạn cần đổi mật khẩu…` cũng quay về màn hình này; lỗi mạng → khung lỗi đỏ; đang tải → chữ "Đang tải..."; khi API trả 401 (sự kiện `auth-expired` do `api.js` bắn) quay về đăng nhập.
 
@@ -448,6 +448,8 @@ Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị th�
 
 ### 7.4 Component dùng chung
 
+> **Cập nhật Astryx (ghi đè các mô tả hình thức bên dưới; hành vi nghiệp vụ giữ nguyên):** mọi ô nhập, nút, bảng, hộp thoại, thông báo, menu, tab, huy hiệu, thanh tiến độ, phân trang dùng component của Astryx. Ánh xạ: `Toast` → `useToast` của Astryx (info/error, tự ẩn 3500/6000 ms); `Dialog` → `AlertDialog` (confirm, `danger` → nút `destructive`) và `Dialog`+`TextInput` (prompt, không đóng khi bấm nền); `StatusBadge` → `Badge`; `ProgressBar` → `ProgressBar` (đỏ <30, cảnh báo 30-59, accent 60-99, xanh 100); `Pagination` → `Pagination` (variant pages, chọn số dòng); `RowMenu` → `MoreMenu`; `DateTimeInput` tự viết → `DateTimeInput` của Astryx (**hai ô ngày và giờ riêng, giờ 24, tuần bắt đầu thứ Hai, popover**; giá trị `YYYY-MM-DDTHH:mm`); `FieldError` bỏ, lỗi đi qua prop `status` của ô nhập; ô bắt buộc dùng `isRequired` (Astryx hiện chữ "Bắt buộc"); `PasswordInput` → `PasswordField` (TextInput + nút con mắt ẩn/hiện); `Select` gốc → `Selector`; bảng → `Table` bọc `DataTable` (khung cuộn ngang, `minWidth`), sắp xếp phía backend qua `useTableSortable` (Table không có onRowClick: mở task bằng liên kết ở cột Số Pwire). Icon từ `lucide-react` qua `Icon` của Astryx. **Trình soạn ghi chú `RichNoteEditor` vẫn tự viết** (contentEditable, HTML đã lọc, dán/kéo thả ảnh thu nhỏ ≤ 1600px) vì `@astryxdesign/richtext` dựa trên Lexical và không giữ được định dạng HTML đã lọc của backend; chỉ thanh công cụ dùng `Button` của Astryx. Menu admin/menu người dùng, các trang và luồng thao tác không đổi.
+
 - **Toast** (`useToast()`: `success|error|info(message)`): góc phải trên, `fixed right-4 top-4 z-50 w-80`, tự ẩn 3500 ms (lỗi 6000 ms), có nút đóng; màu success xanh lá, error đỏ, info xanh dương (biểu tượng `✓ ! i`).
 - **Dialog** (`useDialog()`): `confirm({title,message,confirmLabel,cancelLabel,danger}) → Promise<boolean>`, `prompt({title,message,inputLabel,inputType,placeholder,initialValue,validate,confirmLabel}) → Promise<string|null>`. Modal `fixed inset-0` nền tối, `max-w-md`; Enter = xác nhận, Esc / bấm nền = hủy; `danger` → nút xác nhận đỏ và **mặc định focus nút Hủy**; `prompt` báo lỗi `validate` đỏ ngay trong hộp và chỉ đóng khi hợp lệ; `role="dialog" aria-modal`.
 - **StatusBadge**: `inline-block whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-medium` + lớp màu của trạng thái (không tìm thấy → xám).
@@ -460,6 +462,8 @@ Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị th�
 - **TaskForm** (`initialValues`, `showProgress`, `submitLabel`, `onSubmit(payload)`, `gridClass` mặc định `grid-cols-1 sm:grid-cols-2`): các ô theo thứ tự — Số Pwire*, Tên task*, Ngày giờ nhận* (DateTimeInput), Deadline (ngày giờ) (clearable), Thực tế dev hoàn thành (ngày giờ) (clearable), Người giao*, Dev Cross check (select: `— Chưa chọn —` + danh sách Dev; giữ giá trị hiện tại nếu đã bị xóa khỏi danh sách), Link Pwire (placeholder `https://...`, có link hợp lệ thì hiện dưới ô `↗ Mở link Pwire`), nếu `showProgress`: Tiến độ (%) (number) + Trạng thái (select các trạng thái); rồi **Ghi chú** (RichNoteEditor); nút submit (`Đang lưu...` khi lưu). Kiểm tra phía client trước khi gửi (không lưu khi còn lỗi, lỗi đỏ ngay dưới ô): Số Pwire không rỗng/không chỉ tiền tố/đúng mẫu (trừ khi bằng giá trị gốc), Link đúng http(s) (trừ khi bằng giá trị gốc), tên, người giao, ngày giờ nhận (`Vui lòng chọn ngày giờ nhận`), tiến độ nguyên 0-100, và nếu trạng thái `yeu_cau_hoan_tat` thì tiến độ phải là 100% (`Chuyển sang <X> thì tiến độ phải là 100%`). Lỗi server bắt đầu bằng `Số Pwire đã tồn tại` / `Số Pwire phải bắt đầu` / `Link Pwire phải là` được gắn vào đúng ô; lỗi khác hiện khung đỏ cuối form. Payload gửi: `ma_task, ten, ngay_nhan, deadline|null, dev_hoan_thanh_thuc_te|null, nguoi_giao, ghi_chu, link_test_case, dev_cross_check` (+ `tien_do` số, `trang_thai` nếu `showProgress`); ngày giờ đổi `'T'→khoảng trắng`.
 
 ### 7.5 Khung ứng dụng (`App.jsx`) và các trang
+
+> **Cập nhật Astryx:** khung là `AppShell` + `SideNav`/`SideNavItem` (header "Quản lý task", mục menu như bảng dưới, chấm đỏ số task chưa cập nhật là `Badge` error, chân menu: Xuất CSV, người dùng + badge admin, nút Đăng xuất). Màn dưới breakpoint của Astryx tự đổi sang ngăn kéo (không còn tự viết ngưỡng 1024px). Các mô tả màu/lớp Tailwind cũ trong mục này (như `bg-blue-600`) không còn áp dụng; hình thức theo mục 7.6.
 
 **Khung:** `flex min-h-screen`. **Sidebar** `w-56` (`border-r bg-white`): tiêu đề "Quản lý task"; menu (NavLink, `gap-3`, icon + chữ, mục đang chọn `bg-blue-600 text-white`, còn lại `text-gray-700 hover:bg-gray-100`):
 
@@ -503,27 +507,18 @@ Màn hình hẹp (`< xl`) xếp dọc theo thứ tự ①②③④. Mọi thao t
 
 **Tài khoản `/tai-khoan`:** mọi người: khối "Đổi mật khẩu của tôi" (mật khẩu hiện tại, mới, nhập lại; `max-w-xl`). **Admin** thêm khối "Quản lý tài khoản": form thêm (tên, mật khẩu **hiện chữ rõ** vì admin cần đọc để đưa cho người dùng, select vai trò) + bảng `Tên đăng nhập | Vai trò (select đổi ngay) | Tạo lúc | Số phiên | thao tác` với **Đặt lại mật khẩu** (`dialog.prompt` mật khẩu ẩn, ≥ 8 ký tự, báo lỗi trong hộp) và **Xóa** (`dialog.confirm` danger; khóa với chính mình).
 
-### 7.6 Kiểu dáng chung (Tailwind)
+### 7.6 Giao diện theo Astryx
 
-Giao diện theo **evondevKit** (chế độ sáng, phẳng), màu nhấn **xanh dương** và sắc **Tinted** (`P17`: màu luôn gắn với một thứ trong dữ liệu), không gradient, viền 1px mảnh, đổ bóng chỉ cho lớp nổi. Mọi màu đi qua **token** khai báo trong `@theme` của `index.css`: nền trang `bg-background` (#f4f4f6, không trắng tinh), bề mặt `bg-surface`, chữ `text-foreground` (#2c2c2c) / `text-muted` (#707070), viền `border-border` (trang trí trên nền trắng) và `border-border-strong` (chức năng: ô nhập, nút viền, đường kẻ bảng), điểm nhấn `bg-primary` (#2563eb xanh dương, hover `bg-primary-hover` #1d4ed8, nền nhạt `bg-primary-light`, chữ `text-primary-foreground` trắng; liên kết `text-primary`), hover hàng `bg-surface-hover`/`bg-item-hover`, mục chọn/nút phụ `bg-secondary`, trạng thái `success|warning|neutral` (`bg-*-bg text-*`), lỗi `error-bg/error-border/error-text`, hành động phá hủy `bg-danger-bg text-danger` (chỉ hai màu đỏ: red cho lỗi, rose cho phá hủy). Font `Inter` rồi `ui-sans-serif, system-ui`; chữ mặc định `text-sm`, tiêu đề trang `text-xl font-semibold`, tiêu đề khối `text-base font-semibold`; số trong cột dùng `tabular-nums`.
-- **Bo góc:** `rounded-full` (huy hiệu, chip), `rounded-2xl` (thẻ, modal), `rounded-xl` (phần tử cao ≥ 40px: mục sidebar, khung bảng, popover), `rounded-lg` (phần tử cao ≤ 36px: nút, ô nhập).
-- **Thẻ:** `rounded-2xl border border-border bg-surface p-5`, không đổ bóng. **Đổ bóng** chỉ `shadow-popover` (toast, popover/lịch) và `shadow-modal` (modal, sidebar dạng lớp phủ); cấm `shadow-lg/xl` trần, cấm hover phóng to/nâng, dùng `transition-colors` (cấm `transition-all`).
-- **Nút** (hằng trong `constants.js`): mặc định là nút viền `BUTTON_SECONDARY`; nền đặc `BUTTON_PRIMARY` chỉ cho hành động chính duy nhất; nút phá hủy `BUTTON_DANGER` (nền rose nhạt luôn hiện, chữ rose, **không** viền đỏ, **không** nền đỏ chữ trắng); nút nhỏ trong dòng bảng `BUTTON_SMALL`. Nút chỉ có icon phải có `aria-label`.
-- **Ô nhập** `INPUT_CLASS`: cao 36px, viền `border-border-strong`, focus đổi viền `border-focus` + `ring-2 ring-focus-ring`; lỗi `border-red-500` + dòng chữ lỗi bên dưới.
-- **Bảng:** bọc khung `rounded-xl border border-border-strong bg-surface` + `overflow-x-auto`, tiêu đề chữ mờ, **đường kẻ ngang mảnh giữa các dòng** (không viền từng ô), hover dòng `bg-surface-hover`. `TABLE_BORDER_CLASS` là điểm duy nhất định nghĩa kiểu bảng.
-- **Sidebar:** mục chọn `bg-secondary font-medium` (trung tính, không màu nhấn), hover `bg-item-hover`, mục cao 40px `rounded-xl`.
-- **Huy hiệu:** pill `rounded-full px-2.5 py-1 text-xs font-medium` + chấm `size-1.5 rounded-full bg-current` + `ring-1 ring-inset ring-black/5`. Nhãn "Cập nhật" dùng tông: vàng→`warning`, xanh→`success`, xám→`neutral`, đỏ→`error`.
-- **Biểu tượng:** SVG nội tuyến nét mảnh (`MenuIcon`), **không** emoji hay ký tự mũi tên làm icon; không thêm thư viện icon (giữ ràng buộc công nghệ ở mục 1).
-- **Cập nhật sau review UI (2026-11-25), ghi đè các mô tả cũ ở mục 7.4–7.5:**
-  - **Hành động trong dòng:** hành động xóa hoặc từ 3 hành động trở lên gom vào **menu `…`** (`RowMenu`, `aria-label="Thao tác"`, mở bằng vị trí `fixed` và không tràn mép màn). Nút ↑ ↓ giữ là nút icon (`BUTTON_ICON`). Áp dụng cho: trạng thái, data, tài khoản (Đặt lại mật khẩu, Xóa), mẫu checklist, vấn đề (Sửa, Xóa).
-  - **Vấn đề QnA/Process** hiển thị dạng **danh sách dòng** (nhãn loại + nhãn trạng thái, lý do, `ngày giờ · người liên quan`, nút `Đã xử lý`/`Mở lại` + menu `…`), không còn bảng ngang.
-  - **Bảng danh sách task:** cột `Link Pwire` hiện gọn `↗ Mở` (icon + chữ `Mở`, `title` là URL đầy đủ); `Deadline` và `Cập nhật` hiện đủ `dd/mm/yyyy HH:mm:ss` (giây chỉ có ở giờ do hệ thống ghi; deadline người nhập thì không có giây); mọi chỗ khác (lịch sử, checklist, vấn đề, chi tiết task, tài khoản) hiện `YYYY-MM-DD HH:mm:ss` qua `formatDateTime`; padding ô `px-1.5`; tiêu đề cột bấm sắp xếp cao 32px. Ô tìm `flex-1`, placeholder `Tìm Số Pwire, tên...` (`title` ghi đủ các trường tìm).
-  - **Ô nhập:** placeholder dùng `placeholder:text-muted` (đủ tương phản 4,5:1). **Checkbox/radio** tự vẽ trong `@layer base` (16px, viền token, nền đen khi chọn, dấu tích SVG), không dùng control gốc của trình duyệt.
-  - **Focus:** nút, liên kết, tab, checkbox không vẽ vòng focus (kit `I13`); ô nhập có viền + vòng mờ. Nút viền rê bằng `hover:bg-button-hover` (#ececef, khác cả nền trang lẫn nền thẻ).
-  - **Nhãn cập nhật** dùng chữ `text-error-strong` (#c10007) trên nền lỗi để đạt 4,5:1. **Đường kẻ ngang** trong bảng dùng `border-border`. Sidebar và thanh trên cùng cao 56px (`h-14`).
-  - **Màn hẹp:** các khối của lưới chi tiết task có `min-w-0`; hàng nút hành động của trang chi tiết nằm riêng một hàng; nút không xuống dòng chữ (`whitespace-nowrap`).
-- **Sắc Tinted (màu theo dữ liệu):** sắc phân loại `--color-cat-1..3` (#0d9488, #7c3aed, #c026d3; đã bỏ các sắc cách xanh nhấn dưới 30°), **chỉ cho ô icon**, không cho chữ. `TaskStats`: 3 thẻ số liệu đầu trang "Đang xử lý" (Đang xử lý, Cần cập nhật tiến độ, Đã hoàn thành), ô icon `size-10 rounded-xl bg-cat-N/10`; con số tô `text-warning` khi "Cần cập nhật" > 0, tối đa một số cảnh báo mỗi hàng. `UserChip`: ô icon người, mỗi tên đăng nhập luôn một sắc cat-1..3 (PIC, sidebar). Cột Deadline: quá hạn `text-error-strong`, hôm nay/ngày mai `text-warning`. Cột Checklist: xong hết thì `text-success`. Sidebar: mục chọn `bg-primary-light text-primary`, logo ô xanh `bg-primary`. Tab đang chọn `text-primary`. Checkbox/radio viền `#c4c4cd`.
-- **Modal:** `rounded-2xl border border-border bg-surface-overlay shadow-modal`; hộp thoại **có ô nhập (prompt) không đóng khi bấm nền** (chỉ Hủy / Esc / xác nhận); hộp xác nhận vẫn đóng được bằng bấm nền và Esc.
+Giao diện dùng **Astryx** (design system React của Meta, MIT, https://astryx.atmeta.com), theme **neutral** (đen–trắng, font Figtree), chế độ sáng (`<Theme mode="light">`). Tài liệu component: `npx @astryxdesign/cli component <Tên>` (thêm `--dense`), `npx @astryxdesign/cli docs <chủ đề>`.
+
+- **CSS** (`frontend/src/index.css`): dòng `@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;` rồi nạp `tailwindcss/theme.css` (layer theme), `tailwindcss/preflight.css` (layer base), `@astryxdesign/core/reset.css`, `astryx.css`, `tailwind-theme.css` (cầu nối token ↔ lớp Tailwind), `tailwindcss/utilities.css` (layer utilities). `astryx-themes.js` (sinh bởi `npx @astryxdesign/cli theme add neutral`, **không sửa tay**) nạp `theme.css` và font.
+- **Màu, bo góc, đổ bóng, chữ:** chỉ dùng token Astryx. Trong JSX không viết màu thô (hex, `bg-gray-100`...); khi cần dùng biến token, viết `text-(--color-text-error)`, `border-(--color-border)`, `bg-(--color-background-body)`... Token chính: `--color-accent`, `--color-background-body|surface|muted`, `--color-text-primary|secondary|error|warning|success`, `--color-border`, `--color-border-emphasized`. Trạng thái nghiệp vụ đi qua `Badge`/`ProgressBar` (variant `neutral|info|success|warning|error` hoặc màu `blue|orange|purple|green|red|yellow`).
+- **Bố cục:** `AppShell` (`contentPadding={4}`), tiêu đề trang `Heading level={1}`, khối nội dung `Card`, hàng công cụ `flex flex-wrap gap-3` bằng Tailwind, lưới `grid` bằng Tailwind. Khối trong lưới/flex có `min-w-0`. Bảng rộng bọc `DataTable` để cuộn ngang trên màn hẹp.
+- **Nút:** `Button` (`variant` primary cho hành động chính duy nhất, `secondary` mặc định, `ghost`, `destructive` cho xóa/ghi đè); nút chỉ có icon dùng `isIconOnly` (bắt buộc `label`). Mọi ô nhập có `label` (ẩn bằng `isLabelHidden` nếu không cần hiện) và `htmlName`; `autoComplete` đúng (`username`, `current-password`, `new-password`).
+- **Hành động trong dòng:** xóa hoặc từ 3 hành động trở lên gom vào `RowMenu` (MoreMenu). Vấn đề QnA/Process hiển thị dạng danh sách dòng.
+- **Cập nhật tiến độ trong ô "Cập nhật":** `Badge` theo `getReportStatus`: vàng→`warning`, xanh→`success`, xám→`neutral`, đỏ→`error`; chỉ nhãn có màu.
+- **Ngôn ngữ nhãn nội bộ của Astryx** (Bắt buộc, Chọn ngày, Phân trang, Bỏ qua đến nội dung...): bản dịch `vi-VN`. Chuỗi riêng của ứng dụng vẫn là tiếng Việt viết trong code.
+- Không dùng emoji hay ký tự mũi tên làm icon. Không viết CSS component riêng.
 
 ---
 
@@ -583,7 +578,7 @@ Giao diện theo **evondevKit** (chế độ sáng, phẳng), màu nhấn **xanh
 - [ ] Áp dụng mẫu ghi đè đúng thứ tự mẫu, giữ tick mục trùng tên, bỏ qua task hoàn thành, lần hai không đổi gì, ghi nhật ký.
 
 **Giao diện**
-- [ ] Các ô ngày giờ luôn 24 giờ (không AM/PM); dán ảnh vào Ghi chú thu nhỏ ≤ 1600px và lưu được; nhãn "Cập nhật" vàng/xanh/đỏ đúng quy tắc 16:30 và chỉ nhãn có màu; thanh tiến độ đổi màu theo mức; mọi bảng có khung bo góc và đường kẻ ngang mảnh giữa các dòng; không dùng emoji làm icon; mọi màu đi qua token; cột có thể sắp xếp; trang chi tiết là lưới 2×2 ở màn hình rộng; thu hẹp cửa sổ dưới 1024px thì sidebar chuyển thành lớp phủ; không có hộp thoại gốc của trình duyệt nào xuất hiện.
+- [ ] Các ô ngày giờ luôn 24 giờ (không AM/PM, tuần bắt đầu thứ Hai); dán ảnh vào Ghi chú thu nhỏ ≤ 1600px và lưu được; nhãn "Cập nhật" vàng/xanh/đỏ đúng quy tắc 16:30 và chỉ nhãn có màu; thanh tiến độ đổi màu theo mức; bảng rộng cuộn ngang trên màn hẹp; cột có thể sắp xếp; trang chi tiết là lưới 2×2 ở màn hình rộng; thu hẹp cửa sổ thì menu bên chuyển thành ngăn kéo; không có hộp thoại gốc của trình duyệt nào xuất hiện; console không có lỗi.
 
 ---
 
@@ -594,4 +589,5 @@ Giao diện theo **evondevKit** (chế độ sáng, phẳng), màu nhấn **xanh
 - Tên người thật (danh sách Dev) và dữ liệu task thật **không** nằm trong mã nguồn hay tài liệu được commit — chỉ ở `tasks.db` hoặc file seed cục bộ `backend/seed-data.json` (đã `.gitignore`).
 - Cookie không gắn theo cổng: hai server khác cổng trên cùng host dùng chung cookie `phien_dang_nhap`; khi thử nghiệm song song hãy dùng host khác (`localhost` vs `127.0.0.1`).
 - Express 5: handler `async` tự chuyển lỗi sang bộ xử lý lỗi; các handler đồng bộ bọc bằng một hàm `handle` có `try/catch`.
-- Tailwind v4 quét chuỗi class trong mọi file nguồn, nên hằng chứa class (như `TABLE_BORDER_CLASS`) vẫn được nhận.
+- Thứ tự `@layer` ở đầu `index.css` là bắt buộc: thiếu thì kiểu component của Astryx đè utility Tailwind. `index.css` phải được import trước mọi file khác trong `main.jsx`.
+- Astryx chưa xuất bản bản dịch cho mọi chuỗi; chuỗi nào còn tiếng Anh thì truyền qua prop (ví dụ `label`) hoặc `overrides` của `InternationalizationProvider`.

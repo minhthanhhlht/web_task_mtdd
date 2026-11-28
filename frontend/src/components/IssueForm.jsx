@@ -1,7 +1,9 @@
 // Form thêm vấn đề QnA / Process cho task (ngày giờ do server tự ghi).
 import { useState } from 'react';
-import { BUTTON_PRIMARY, INPUT_CLASS, ISSUE_TYPES } from '../constants.js';
-import FieldError from './FieldError.jsx';
+import { Button } from '@astryxdesign/core/Button';
+import { Selector } from '@astryxdesign/core/Selector';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { ISSUE_TYPES } from '../constants.js';
 
 export default function IssueForm({ onAdd }) {
   const [loai, setLoai] = useState(ISSUE_TYPES[0]);
@@ -28,16 +30,15 @@ export default function IssueForm({ onAdd }) {
   };
 
   return (
-    <form onSubmit={submit} noValidate className="mt-3 space-y-2 border-t border-border pt-3">
+    <form onSubmit={submit} noValidate className="mt-3 flex flex-col gap-2 border-t border-(--color-border) pt-3">
       <div className="flex flex-wrap gap-2">
-        <select aria-label="Loại vấn đề" name="loai" className={INPUT_CLASS} value={loai} onChange={(event) => setLoai(event.target.value)}>
-          {ISSUE_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
-        </select>
-        <input className={`${INPUT_CLASS} flex-1`} aria-label="Người liên quan (không bắt buộc)" name="nguoi_lien_quan_khong_bat_buoc" placeholder="Người liên quan (không bắt buộc)" value={related} onChange={(event) => setRelated(event.target.value)} />
+        <Selector label="Loại vấn đề" isLabelHidden value={loai} width={140} options={ISSUE_TYPES} onChange={(v) => setLoai(v ?? ISSUE_TYPES[0])} />
+        <div className="min-w-40 flex-1">
+          <TextInput label="Người liên quan (không bắt buộc)" isLabelHidden placeholder="Người liên quan (không bắt buộc)" value={related} onChange={setRelated} htmlName="nguoi_lien_quan_khong_bat_buoc" />
+        </div>
       </div>
-      <input className={`w-full ${INPUT_CLASS} ${error ? 'border-red-500' : ''}`} aria-label="Lý do" name="ly_do" placeholder="Lý do" value={reason} onChange={(event) => { setReason(event.target.value); setError(''); }} />
-      <FieldError message={error} />
-      <button type="submit" className={BUTTON_PRIMARY} disabled={saving}>{saving ? 'Đang lưu...' : 'Thêm vấn đề'}</button>
+      <TextInput label="Lý do" isLabelHidden placeholder="Lý do" value={reason} htmlName="ly_do" onChange={(v) => { setReason(v); setError(''); }} status={error ? { type: 'error', message: error } : undefined} />
+      <div><Button type="submit" variant="primary" label={saving ? 'Đang lưu...' : 'Thêm vấn đề'} isDisabled={saving} /></div>
     </form>
   );
 }

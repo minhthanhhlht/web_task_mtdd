@@ -1,7 +1,10 @@
-// Chọn nhiều task (có tìm kiếm, phân trang cố định 50) cho chức năng "Áp dụng mẫu".
+// Chọn nhiều task (có tìm kiếm, phân trang cố định PAGE_SIZE) cho chức năng "Áp dụng mẫu".
 import { useEffect, useState } from 'react';
+import { CheckboxInput } from '@astryxdesign/core/CheckboxInput';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
 import { listTasks } from '../api.js';
-import { INPUT_CLASS, PAGE_SIZE } from '../constants.js';
+import { PAGE_SIZE } from '../constants.js';
 import Pagination from './Pagination.jsx';
 import { ErrorBox, Loading } from './StateMessage.jsx';
 
@@ -30,19 +33,16 @@ export default function TaskPicker({ selected, onChange }) {
   const toggle = (id) => onChange(selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id]);
 
   return (
-    <div>
-      <input className={`w-full ${INPUT_CLASS}`} aria-label="Tìm task..." name="tim_task" placeholder="Tìm task..." value={search} onChange={(e) => setSearch(e.target.value)} />
+    <div className="flex flex-col gap-2">
+      <TextInput label="Tìm task..." isLabelHidden placeholder="Tìm task..." startIcon="search" hasClear value={search} onChange={setSearch} htmlName="tim_task" />
       <ErrorBox message={error} />
       {loading && <Loading />}
-      <div className="mt-2 max-h-72 overflow-auto rounded-xl border border-border-strong">
+      <div className="flex max-h-72 flex-col gap-1 overflow-auto rounded-lg border border-(--color-border) p-2">
         {data.items.map((task) => (
-          <label key={task.id} className="flex items-center gap-2 border-b border-border px-2 py-1 text-sm hover:bg-surface-hover">
-            <input type="checkbox" checked={selected.includes(task.id)} onChange={() => toggle(task.id)} />
-            <span className="text-muted">{task.ma_task}</span> {task.ten}
-          </label>
+          <CheckboxInput key={task.id} label={`${task.ma_task} ${task.ten}`} value={selected.includes(task.id)} onChange={() => toggle(task.id)} />
         ))}
       </div>
-      <p className="mt-1 text-xs text-muted">Đã chọn {selected.length} task</p>
+      <Text type="supporting" color="secondary">Đã chọn {selected.length} task</Text>
       <Pagination total={data.total} page={page} limit={PAGE_SIZE} onChangePage={setPage} />
     </div>
   );

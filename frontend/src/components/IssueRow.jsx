@@ -1,6 +1,11 @@
 // Một dòng vấn đề dạng danh sách (không bảng ngang): xem, sửa tại chỗ, đổi trạng thái Mở↔Đã xử lý, xóa có xác nhận.
 import { useState } from 'react';
-import { BUTTON_PRIMARY, BUTTON_SECONDARY, BUTTON_SMALL, formatDateTime, INPUT_CLASS, ISSUE_TYPES } from '../constants.js';
+import { Badge } from '@astryxdesign/core/Badge';
+import { Button } from '@astryxdesign/core/Button';
+import { Selector } from '@astryxdesign/core/Selector';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { formatDateTime, ISSUE_TYPES } from '../constants.js';
 import { useDialog } from './DialogContext.jsx';
 import RowMenu from './RowMenu.jsx';
 
@@ -23,17 +28,15 @@ export default function IssueRow({ issue, onUpdate, onDelete }) {
 
   if (editing) {
     return (
-      <li className="space-y-2 p-3">
+      <li className="flex flex-col gap-2 p-3">
         <div className="flex flex-wrap gap-2">
-          <select className={INPUT_CLASS} value={draft.loai} onChange={(e) => setDraft({ ...draft, loai: e.target.value })}>
-            {ISSUE_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-          </select>
-          <input className={`min-w-40 flex-1 ${INPUT_CLASS}`} aria-label="Người liên quan" name="nguoi_lien_quan" placeholder="Người liên quan" value={draft.nguoi_lien_quan} onChange={(e) => setDraft({ ...draft, nguoi_lien_quan: e.target.value })} />
+          <Selector label="Loại vấn đề" isLabelHidden value={draft.loai} width={140} options={ISSUE_TYPES} onChange={(v) => setDraft({ ...draft, loai: v ?? draft.loai })} />
+          <div className="min-w-40 flex-1"><TextInput label="Người liên quan" isLabelHidden placeholder="Người liên quan" value={draft.nguoi_lien_quan} onChange={(v) => setDraft({ ...draft, nguoi_lien_quan: v })} /></div>
         </div>
-        <input className={`w-full ${INPUT_CLASS}`} value={draft.ly_do} onChange={(e) => setDraft({ ...draft, ly_do: e.target.value })} />
+        <TextInput label="Lý do" isLabelHidden value={draft.ly_do} onChange={(v) => setDraft({ ...draft, ly_do: v })} />
         <div className="flex gap-2">
-          <button type="button" className={BUTTON_PRIMARY} onClick={save}>Lưu</button>
-          <button type="button" className={BUTTON_SECONDARY} onClick={() => { setDraft(issue); setEditing(false); }}>Hủy</button>
+          <Button label="Lưu" variant="primary" onClick={save} />
+          <Button label="Hủy" onClick={() => { setDraft(issue); setEditing(false); }} />
         </div>
       </li>
     );
@@ -44,14 +47,14 @@ export default function IssueRow({ issue, onUpdate, onDelete }) {
     <li className="flex items-start gap-3 p-3">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-neutral-bg px-2.5 py-1 text-xs font-medium text-neutral ring-1 ring-inset ring-black/5">{issue.loai}</span>
-          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ring-black/5 ${done ? 'bg-success-bg text-success' : 'bg-warning-bg text-warning'}`}>{issue.trang_thai}</span>
+          <Badge variant="neutral" label={issue.loai} />
+          <Badge variant={done ? 'success' : 'warning'} label={issue.trang_thai} />
         </div>
-        <p className="mt-1.5 break-words text-sm">{issue.ly_do}</p>
-        <p className="mt-1 text-xs text-muted">{formatDateTime(issue.ngay_gio)}{issue.nguoi_lien_quan ? ` · ${issue.nguoi_lien_quan}` : ''}</p>
+        <Text display="block"><span className="mt-1.5 block break-words">{issue.ly_do}</span></Text>
+        <Text type="supporting" color="secondary" display="block">{formatDateTime(issue.ngay_gio)}{issue.nguoi_lien_quan ? ` · ${issue.nguoi_lien_quan}` : ''}</Text>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
-        <button type="button" className={BUTTON_SMALL} onClick={() => onUpdate(issue.id, { trang_thai: done ? 'Mở' : 'Đã xử lý' })}>{done ? 'Mở lại' : 'Đã xử lý'}</button>
+        <Button label={done ? 'Mở lại' : 'Đã xử lý'} size="sm" onClick={() => onUpdate(issue.id, { trang_thai: done ? 'Mở' : 'Đã xử lý' })} />
         <RowMenu items={[{ label: 'Sửa', icon: 'edit', onClick: () => { setDraft(issue); setEditing(true); } }, { label: 'Xóa vấn đề', icon: 'trash', danger: true, onClick: remove }]} />
       </div>
     </li>

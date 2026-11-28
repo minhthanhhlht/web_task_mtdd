@@ -2,6 +2,14 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Chuyển toàn bộ giao diện sang Astryx
+
+- Thay evondevKit + component tự viết bằng Astryx (`@astryxdesign/core` 0.7.17, theme neutral, ngôn ngữ vi-VN, MIT). Giữ Tailwind cho bố cục qua cầu nối token. Icon `lucide-react`.
+- Viết lại: App (AppShell + SideNav), Login, ForceChangePassword, TaskList/Archive (Table + sắp xếp phía backend), TaskNew/TaskDetail/TaskForm (TextInput, DateTimeInput, Selector, NumberInput), EndOfDay, Checklist (TabList, RadioList), StatusManager, DataManager, DeletedTasks, Accounts và các component dùng chung. `useToast`/`useDialog` giữ nguyên API, dựng trên Toast/AlertDialog/Dialog của Astryx. Thêm `DataTable`, `PasswordField`, `RouterLink`; bỏ `DateTimeInput`, `FieldError`, `MenuIcon`, `PasswordInput`, hằng class trong `constants.js`.
+- `RichNoteEditor` giữ tự viết (HTML đã lọc, ảnh thu nhỏ), thanh công cụ dùng Button Astryx.
+- Khác biệt hành vi giao diện: ô ngày giờ là hai ô (ngày, giờ); ô bắt buộc hiện "Bắt buộc" thay cho dấu `*`; menu bên tự thành ngăn kéo trên màn hẹp; theme đen–trắng thay màu nhấn xanh dương.
+- Sửa `PROJECT_SPEC.md` (mục 1, 2, 3, 7.1, 7.4–7.6, 10, 11), `RULES.md` (mục 2, 4), `CLAUDE.md` (mục UI/UX).
+
 ## 2026-11-26 — Nút ẩn/hiện mật khẩu
 
 - Thêm `PasswordInput.jsx` (ô mật khẩu + nút con mắt `aria-label`, icon `eye`/`eye-off` trong `MenuIcon`); dùng ở Đăng nhập (kể cả ô nhập lại), Đổi mật khẩu ở trang Tài khoản và màn hình ép đổi mật khẩu. Hộp đặt lại mật khẩu của admin vẫn ẩn.

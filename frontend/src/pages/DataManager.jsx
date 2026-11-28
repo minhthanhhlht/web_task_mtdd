@@ -1,16 +1,24 @@
 // Trang quản lý data dùng chung (admin): hiện có nhóm Dev — thêm, thêm nhiều, đổi tên, đổi thứ tự, xóa.
-import RowMenu from '../components/RowMenu.jsx';
-import MenuIcon from '../components/MenuIcon.jsx';
 import { useCallback, useEffect, useState } from 'react';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { Icon } from '@astryxdesign/core/Icon';
+import { Tab, TabList } from '@astryxdesign/core/TabList';
+import { TextArea } from '@astryxdesign/core/TextArea';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import DataTable from '../components/DataTable.jsx';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import { createDataItem, createDataItemsBulk, deleteDataItem, listDataGroups, moveDataItem, updateDataItem } from '../api.js';
 import { useDialog } from '../components/DialogContext.jsx';
 import Pagination from '../components/Pagination.jsx';
+import RowMenu from '../components/RowMenu.jsx';
 import { ErrorBox, Loading } from '../components/StateMessage.jsx';
 import { useToast } from '../components/Toast.jsx';
-import { BUTTON_ICON, BUTTON_PRIMARY, BUTTON_SECONDARY, CARD_CLASS, INPUT_CLASS, TABLE_BORDER_CLASS, PAGE_SIZE } from '../constants.js';
+import { PAGE_SIZE } from '../constants.js';
 
-// Một dòng mục dữ liệu: đổi tên rời ô/Enter
-function ItemRow({ item, index, count, onRename, onMove, onDelete }) {
+// Ô tên sửa tại chỗ: đổi tên rời ô/Enter, Esc hủy
+function NameCell({ item, onRename }) {
   const [name, setName] = useState(item.ten);
   const commit = async () => {
     const next = name.trim();
@@ -18,19 +26,9 @@ function ItemRow({ item, index, count, onRename, onMove, onDelete }) {
     if (!(await onRename(item, next))) setName(item.ten);
   };
   return (
-    <tr>
-      <td className="px-3 py-1.5">{index + 1}</td>
-      <td className="px-3 py-1.5">
-        <input aria-label={`Tên ${item.ten}`} name={`ten_${item.id}`} className={`w-64 ${INPUT_CLASS}`} value={name} onChange={(e) => setName(e.target.value)} onBlur={commit}
-          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') { setName(item.ten); e.target.blur(); } }} />
-      </td>
-      <td className="px-3 py-1.5">{item.so_task}</td>
-      <td className="whitespace-nowrap px-3 py-1.5">
-        <button type="button" className={BUTTON_ICON} disabled={index === 0} onClick={() => onMove(item, -1)} aria-label="Lên"><MenuIcon name="arrow-up" className="size-4" /></button>{' '}
-        <button type="button" className={BUTTON_ICON} disabled={index === count - 1} onClick={() => onMove(item, 1)} aria-label="Xuống"><MenuIcon name="arrow-down" className="size-4" /></button>{' '}
-        <RowMenu items={[{ label: 'Xóa', icon: 'trash', danger: true, disabled: item.so_task > 0, title: item.so_task > 0 ? `Đang có ${item.so_task} task dùng` : undefined, onClick: () => onDelete(item) }]} />
-      </td>
-    </tr>
+    <div className="min-w-64" onBlur={commit}>
+      <TextInput label={`Tên ${item.ten}`} isLabelHidden value={name} onChange={setName} htmlName={`ten_${item.id}`} onEnter={commit} onKeyDown={(e) => { if (e.key === 'Escape') setName(item.ten); }} />
+    </div>
   );
 }
 
@@ -86,44 +84,50 @@ export default function DataManager() {
     if (ok) run(() => deleteDataItem(item.id), 'Đã xóa');
   };
 
+  const pageItems = items.slice((page - 1) * limit, page * limit);
+  const columns = [
+    { key: 'stt', header: '#', renderCell: (item) => items.indexOf(item) + 1 },
+    { key: 'ten', header: 'Tên', renderCell: (item) => <NameCell key={`${item.id}-${item.ten}`} item={item} onRename={(it, next) => run(() => updateDataItem(it.id, { ten: next }))} /> },
+    { key: 'so_task', header: 'Số task đang dùng', renderCell: (item) => <span className="tabular-nums">{item.so_task}</span> },
+    {
+      key: 'thao_tac', header: '',
+      renderCell: (item) => {
+        const index = items.indexOf(item);
+        return (
+          <span className="inline-flex items-center gap-1">
+            <Button label="Lên" size="sm" isIconOnly icon={<Icon icon={ArrowUp} />} isDisabled={index === 0} onClick={() => run(() => moveDataItem(item.id, -1))} />
+            <Button label="Xuống" size="sm" isIconOnly icon={<Icon icon={ArrowDown} />} isDisabled={index === items.length - 1} onClick={() => run(() => moveDataItem(item.id, 1))} />
+            <RowMenu items={[{ label: item.so_task > 0 ? `Xóa (đang có ${item.so_task} task dùng)` : 'Xóa', icon: 'trash', danger: true, disabled: item.so_task > 0, onClick: () => remove(item) }]} />
+          </span>
+        );
+      },
+    },
+  ];
+
   return (
-    <div>
-      <h1 className="mb-4 text-xl font-semibold">Quản lý data</h1>
-      <div className="mb-3 flex gap-1">
-        {groups.map((g) => (
-          <button key={g.key} type="button" onClick={() => { setActive(g.key); setPage(1); }} className={`rounded-t-xl border border-b-0 border-border-strong px-4 py-1.5 text-sm ${active === g.key ? 'bg-surface font-semibold text-primary' : 'bg-surface-hover text-muted'}`}>{g.label}</button>
-        ))}
-      </div>
+    <div className="flex flex-col gap-4">
+      <Heading level={1}>Quản lý data</Heading>
+      <TabList value={active} onChange={(v) => { setActive(v); setPage(1); }} hasDivider>
+        {groups.map((g) => <Tab key={g.key} value={g.key} label={g.label} />)}
+      </TabList>
       <ErrorBox message={error} onRetry={load} />
       {loading && <Loading />}
-      <div className={`${CARD_CLASS} mb-4`}>
-        <form onSubmit={add} noValidate className="flex flex-wrap gap-2">
-          <input className={`w-64 ${INPUT_CLASS}`} aria-label="Tên mới" name="ten_moi" placeholder="Tên mới" value={name} onChange={(e) => setName(e.target.value)} />
-          <button type="submit" className={BUTTON_PRIMARY}>Thêm</button>
-          <button type="button" className={BUTTON_SECONDARY} onClick={() => setShowBulk(!showBulk)}>Thêm nhiều</button>
-        </form>
-        {showBulk && (
-          <div className="mt-3">
-            <textarea rows={6} className={`w-full ${INPUT_CLASS}`} placeholder="Mỗi dòng một tên" value={bulk} onChange={(e) => setBulk(e.target.value)} />
-            <button type="button" className={`mt-2 ${BUTTON_PRIMARY}`} onClick={addBulk}>Thêm danh sách</button>
-          </div>
-        )}
-      </div>
-      <div className="overflow-x-auto rounded-xl border border-border-strong bg-surface">
-        <table className={`w-full text-sm ${TABLE_BORDER_CLASS}`}>
-          <thead className="bg-surface-hover text-left"><tr><th className="px-3 py-1.5">#</th><th className="px-3 py-1.5">Tên</th><th className="px-3 py-1.5">Số task đang dùng</th><th className="px-3 py-1.5" /></tr></thead>
-          <tbody>
-            {items.slice((page - 1) * limit, page * limit).map((item, i) => (
-              <ItemRow
-                key={`${item.id}-${item.ten}`} item={item} index={(page - 1) * limit + i} count={items.length}
-                onRename={(it, next) => run(() => updateDataItem(it.id, { ten: next }))}
-                onMove={(it, dir) => run(() => moveDataItem(it.id, dir))}
-                onDelete={remove}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <Card>
+        <div className="flex flex-col gap-3">
+          <form onSubmit={add} noValidate className="flex flex-wrap items-end gap-2">
+            <div className="w-64"><TextInput label="Tên mới" isLabelHidden placeholder="Tên mới" value={name} onChange={setName} htmlName="ten_moi" /></div>
+            <Button type="submit" variant="primary" label="Thêm" />
+            <Button label="Thêm nhiều" onClick={() => setShowBulk(!showBulk)} />
+          </form>
+          {showBulk && (
+            <div className="flex flex-col gap-2">
+              <TextArea label="Danh sách tên" isLabelHidden rows={6} placeholder="Mỗi dòng một tên" value={bulk} onChange={setBulk} />
+              <div><Button label="Thêm danh sách" variant="primary" onClick={addBulk} /></div>
+            </div>
+          )}
+        </div>
+      </Card>
+      <DataTable minWidth={500} data={pageItems} columns={columns} idKey="id" density="compact" />
       <Pagination total={items.length} page={page} limit={limit} unit="mục" onChangePage={setPage} onChangeLimit={(v) => { setLimit(v); setPage(1); }} />
     </div>
   );

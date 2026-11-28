@@ -1,7 +1,9 @@
 // Admin: áp dụng mẫu checklist (GHI ĐÈ) cho task chưa hoàn thành đã có sẵn.
 import { useState } from 'react';
+import { Button } from '@astryxdesign/core/Button';
+import { RadioList, RadioListItem } from '@astryxdesign/core/RadioList';
+import { Text } from '@astryxdesign/core/Text';
 import { applyTemplates } from '../api.js';
-import { BUTTON_DANGER } from '../constants.js';
 import { useDialog } from './DialogContext.jsx';
 import TaskPicker from './TaskPicker.jsx';
 import { useToast } from './Toast.jsx';
@@ -36,16 +38,21 @@ export default function ApplyTemplatePanel({ disabled }) {
   };
 
   return (
-    <div>
-      <div className="mb-2 flex gap-4 text-sm">
-        <label className="flex items-center gap-1"><input type="radio" checked={mode === 'all'} onChange={() => setMode('all')} /> Tất cả task chưa hoàn thành</label>
-        <label className="flex items-center gap-1"><input type="radio" checked={mode === 'some'} onChange={() => setMode('some')} /> Chọn task cụ thể</label>
-      </div>
+    <div className="flex flex-col gap-3">
+      <RadioList label="Phạm vi áp dụng" isLabelHidden orientation="horizontal" value={mode} onChange={setMode}>
+        <RadioListItem label="Tất cả task chưa hoàn thành" value="all" />
+        <RadioListItem label="Chọn task cụ thể" value="some" />
+      </RadioList>
       {mode === 'some' && <TaskPicker selected={selected} onChange={setSelected} />}
-      <button type="button" className={`mt-3 ${BUTTON_DANGER}`} disabled={disabled || busy || (mode === 'some' && selected.length === 0)} onClick={apply}>
-        {busy ? 'Đang áp dụng...' : 'Áp dụng mẫu (ghi đè)'}
-      </button>
-      {disabled && <p className="mt-1 text-xs text-warning">Hãy lưu hoặc hoàn tác mẫu trước khi áp dụng.</p>}
+      <div>
+        <Button
+          label={busy ? 'Đang áp dụng...' : 'Áp dụng mẫu (ghi đè)'}
+          variant="destructive"
+          isDisabled={disabled || busy || (mode === 'some' && selected.length === 0)}
+          onClick={apply}
+        />
+      </div>
+      {disabled && <Text type="supporting" color="secondary">Hãy lưu hoặc hoàn tác mẫu trước khi áp dụng.</Text>}
     </div>
   );
 }

@@ -1,7 +1,12 @@
-// Trang chi tiết task: thông tin, checklist, vấn đề QnA/Process và lịch sử thay đổi.
-import MenuIcon from '../components/MenuIcon.jsx';
+// Trang chi tiết task: lưới 4 khối (thông tin, checklist, vấn đề QnA/Process, lịch sử thay đổi).
 import { useCallback, useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { Heading } from '@astryxdesign/core/Heading';
+import { Icon } from '@astryxdesign/core/Icon';
+import { Text } from '@astryxdesign/core/Text';
+import { ArrowLeft, Trash2 } from 'lucide-react';
 import {
   addIssue, deleteIssue, deleteTask, getTask, saveEod, setAllChecklist, setChecklistItem, updateIssue, updateTask,
 } from '../api.js';
@@ -19,7 +24,7 @@ import { useStatuses } from '../components/StatusContext.jsx';
 import TaskForm from '../components/TaskForm.jsx';
 import TaskHistory from '../components/TaskHistory.jsx';
 import { useToast } from '../components/Toast.jsx';
-import { BUTTON_DANGER, BUTTON_SECONDARY, CARD_CLASS, formatDateTime } from '../constants.js';
+import { formatDateTime } from '../constants.js';
 import { notifyReportChanged } from '../useReportSummary.js';
 
 export default function TaskDetail() {
@@ -103,62 +108,78 @@ export default function TaskDetail() {
   };
 
   return (
-    <div>
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <Link to="/" className={BUTTON_SECONDARY}><MenuIcon name="arrow-left" className="size-4" /> Danh sách</Link>
-        <h1 className="min-w-0 break-words text-xl font-semibold">{task.ten}</h1>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <Button label="Danh sách" href="/" icon={<Icon icon={ArrowLeft} />} />
+        <div className="min-w-0"><Heading level={1}>{task.ten}</Heading></div>
         <StatusBadge name={task.trang_thai} />
         <ProgressBar value={task.tien_do} />
         <div className="flex w-full flex-wrap items-center gap-3">
-          {!finished && <button type="button" className={BUTTON_SECONDARY} onClick={unchanged}>Không đổi tiến độ</button>}
-          <button type="button" className={BUTTON_DANGER} onClick={remove}>Xóa task</button>
+          {!finished && <Button label="Không đổi tiến độ" onClick={unchanged} />}
+          <Button label="Xóa task" variant="destructive" icon={<Icon icon={Trash2} />} onClick={remove} />
           {user.vai_tro === 'admin' && <PicTransfer task={task} onDone={load} />}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <section className={`${CARD_CLASS} order-1 min-w-0`}>
-          <h2 className="mb-1 text-lg font-semibold">Thông tin</h2>
-          <p className="mb-3 text-xs text-muted">Tạo lúc {formatDateTime(task.tao_luc)} · Cập nhật lúc {formatDateTime(task.cap_nhat_luc)}</p>
-          <TaskForm key={task.cap_nhat_luc} initialValues={task} showProgress submitLabel="Lưu thay đổi" onSubmit={saveInfo} />
-        </section>
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <div className="order-1 min-w-0">
+          <Card>
+            <div className="flex flex-col gap-2">
+              <Heading level={2}>Thông tin</Heading>
+              <Text type="supporting" color="secondary">Tạo lúc {formatDateTime(task.tao_luc)} · Cập nhật lúc {formatDateTime(task.cap_nhat_luc)}</Text>
+              <TaskForm key={task.cap_nhat_luc} initialValues={task} showProgress submitLabel="Lưu thay đổi" onSubmit={saveInfo} />
+            </div>
+          </Card>
+        </div>
 
-        <section className={`${CARD_CLASS} order-2 min-w-0`}>
-          <h2 className="mb-2 text-lg font-semibold">Checklist ({doneCount}/{items.length})</h2>
-          <div className="mb-2 flex items-center justify-between">
-            <SelectAllCheckbox
-              checked={items.length > 0 && doneCount === items.length}
-              indeterminate={doneCount > 0 && doneCount < items.length}
-              disabled={items.length === 0}
-              onChange={async (checked) => {
-                if (!checked) {
-                  const ok = await dialog.confirm({ title: 'Bỏ tick tất cả', message: 'Bỏ tick tất cả mục checklist của task này?', confirmLabel: 'Bỏ tick' });
-                  if (!ok) return;
-                }
-                run(() => setAllChecklist(task.id, checked));
-              }}
-            />
-            <button type="button" className={BUTTON_SECONDARY} onClick={copyTemplate}>Sao chép mẫu comment</button>
-          </div>
-          {items.map((item) => <ChecklistBox key={item.id} item={item} onToggle={(it, done) => run(() => setChecklistItem(it.id, done))} />)}
-        </section>
+        <div className="order-2 min-w-0">
+          <Card>
+            <div className="flex flex-col gap-2">
+              <Heading level={2}>Checklist ({doneCount}/{items.length})</Heading>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <SelectAllCheckbox
+                  checked={items.length > 0 && doneCount === items.length}
+                  indeterminate={doneCount > 0 && doneCount < items.length}
+                  disabled={items.length === 0}
+                  onChange={async (checked) => {
+                    if (!checked) {
+                      const ok = await dialog.confirm({ title: 'Bỏ tick tất cả', message: 'Bỏ tick tất cả mục checklist của task này?', confirmLabel: 'Bỏ tick' });
+                      if (!ok) return;
+                    }
+                    run(() => setAllChecklist(task.id, checked));
+                  }}
+                />
+                <Button label="Sao chép mẫu comment" onClick={copyTemplate} />
+              </div>
+              {items.map((item) => <ChecklistBox key={item.id} item={item} onToggle={(it, done) => run(() => setChecklistItem(it.id, done))} />)}
+            </div>
+          </Card>
+        </div>
 
-        <section className={`${CARD_CLASS} order-3 min-w-0`}>
-          <h2 className="mb-2 text-lg font-semibold">Vấn đề QnA / Process</h2>
-          {task.issues.length === 0 ? <p className="text-sm text-muted">Chưa có vấn đề nào.</p> : (
-            <ul className="divide-y divide-border-strong rounded-xl border border-border-strong">
-              {task.issues.map((issue) => (
-                <IssueRow key={issue.id} issue={issue} onUpdate={(issueId, body) => run(() => updateIssue(issueId, body))} onDelete={(issueId) => run(() => deleteIssue(issueId), 'Đã xóa vấn đề')} />
-              ))}
-            </ul>
-          )}
-          <IssueForm onAdd={async (body) => { await addIssue(task.id, body); toast.success('Đã thêm vấn đề'); await load(); }} />
-        </section>
+        <div className="order-3 min-w-0">
+          <Card>
+            <div className="flex flex-col gap-2">
+              <Heading level={2}>Vấn đề QnA / Process</Heading>
+              {task.issues.length === 0 ? <Text color="secondary">Chưa có vấn đề nào.</Text> : (
+                <ul className="divide-y divide-(--color-border) rounded-lg border border-(--color-border)">
+                  {task.issues.map((issue) => (
+                    <IssueRow key={issue.id} issue={issue} onUpdate={(issueId, body) => run(() => updateIssue(issueId, body))} onDelete={(issueId) => run(() => deleteIssue(issueId), 'Đã xóa vấn đề')} />
+                  ))}
+                </ul>
+              )}
+              <IssueForm onAdd={async (body) => { await addIssue(task.id, body); toast.success('Đã thêm vấn đề'); await load(); }} />
+            </div>
+          </Card>
+        </div>
 
-        <section className={`${CARD_CLASS} order-4 min-w-0`}>
-          <h2 className="mb-2 text-lg font-semibold">Lịch sử thay đổi</h2>
-          <TaskHistory taskId={task.id} reloadKey={historyKey} />
-        </section>
+        <div className="order-4 min-w-0">
+          <Card>
+            <div className="flex flex-col gap-2">
+              <Heading level={2}>Lịch sử thay đổi</Heading>
+              <TaskHistory taskId={task.id} reloadKey={historyKey} />
+            </div>
+          </Card>
+        </div>
       </div>
     </div>
   );

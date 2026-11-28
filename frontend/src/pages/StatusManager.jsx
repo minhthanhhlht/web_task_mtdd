@@ -1,22 +1,31 @@
 // Trang quản lý trạng thái task (admin): thêm, sửa tên/màu/cờ, đổi thứ tự, xóa.
-import RowMenu from '../components/RowMenu.jsx';
-import MenuIcon from '../components/MenuIcon.jsx';
 import { useState } from 'react';
+import { Button } from '@astryxdesign/core/Button';
+import { Card } from '@astryxdesign/core/Card';
+import { CheckboxInput } from '@astryxdesign/core/CheckboxInput';
+import { Heading } from '@astryxdesign/core/Heading';
+import { Icon } from '@astryxdesign/core/Icon';
+import { Selector } from '@astryxdesign/core/Selector';
+import DataTable from '../components/DataTable.jsx';
+import { Text } from '@astryxdesign/core/Text';
+import { TextInput } from '@astryxdesign/core/TextInput';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import { createStatus, deleteStatus, moveStatus, updateStatus } from '../api.js';
 import { useDialog } from '../components/DialogContext.jsx';
 import Pagination from '../components/Pagination.jsx';
+import RowMenu from '../components/RowMenu.jsx';
 import { ErrorBox, Loading } from '../components/StateMessage.jsx';
 import StatusBadge from '../components/StatusBadge.jsx';
 import { useStatuses } from '../components/StatusContext.jsx';
 import { useToast } from '../components/Toast.jsx';
-import { BUTTON_ICON, BUTTON_PRIMARY, CARD_CLASS, INPUT_CLASS, STATUS_COLOR_OPTIONS, TABLE_BORDER_CLASS, PAGE_SIZE } from '../constants.js';
+import { PAGE_SIZE, STATUS_COLOR_OPTIONS } from '../constants.js';
 
-// Một dòng trạng thái: tên sửa tại chỗ (rời ô/Enter lưu, Esc hủy)
-function StatusRow({ status, index, count, onChange, onMove, onDelete }) {
+const COLOR_OPTIONS = Object.entries(STATUS_COLOR_OPTIONS).map(([value, opt]) => ({ value, label: opt.label }));
+
+// Ô tên sửa tại chỗ (rời ô/Enter lưu, Esc hủy); nếu đang có task dùng thì hỏi xác nhận trước khi đổi
+function NameCell({ status, onChange }) {
   const dialog = useDialog();
   const [name, setName] = useState(status.ten);
-
-  // Lưu tên mới; nếu đang có task dùng thì hỏi xác nhận
   const commitName = async () => {
     const next = name.trim();
     if (!next || next === status.ten) { setName(status.ten); return; }
@@ -26,31 +35,14 @@ function StatusRow({ status, index, count, onChange, onMove, onDelete }) {
     }
     if (!(await onChange(status, { ten: next }))) setName(status.ten);
   };
-
   return (
-    <tr>
-      <td className="px-3 py-1.5">{index + 1}</td>
-      <td className="px-3 py-1.5">
-        <input
-          aria-label={`Tên trạng thái ${status.ten}`} name={`ten_${status.id}`} className={`w-56 ${INPUT_CLASS}`} value={name} onChange={(e) => setName(e.target.value)} onBlur={commitName}
-          onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); if (e.key === 'Escape') { setName(status.ten); e.target.blur(); } }}
-        />
-      </td>
-      <td className="px-3 py-1.5">
-        <select aria-label={`Màu của ${status.ten}`} name={`mau_${status.id}`} className={INPUT_CLASS} value={status.mau} onChange={(e) => onChange(status, { mau: e.target.value })}>
-          {Object.entries(STATUS_COLOR_OPTIONS).map(([key, opt]) => <option key={key} value={key}>{opt.label}</option>)}
-        </select>
-      </td>
-      <td className="px-3 py-1.5"><StatusBadge name={status.ten} color={status.mau} /></td>
-      <td className="px-3 py-1.5 text-center"><input type="checkbox" aria-label={`${status.ten} là trạng thái hoàn thành`} name={`hoan_thanh_${status.id}`} checked={Boolean(status.la_hoan_thanh)} onChange={(e) => onChange(status, { la_hoan_thanh: e.target.checked })} /></td>
-      <td className="px-3 py-1.5 text-center"><input type="checkbox" aria-label={`${status.ten} yêu cầu 100% và checklist`} name={`yeu_cau_${status.id}`} checked={Boolean(status.yeu_cau_hoan_tat)} onChange={(e) => onChange(status, { yeu_cau_hoan_tat: e.target.checked })} /></td>
-      <td className="px-3 py-1.5">{status.so_task}</td>
-      <td className="whitespace-nowrap px-3 py-1.5">
-        <button type="button" className={BUTTON_ICON} disabled={index === 0} onClick={() => onMove(status, -1)} aria-label="Lên"><MenuIcon name="arrow-up" className="size-4" /></button>{' '}
-        <button type="button" className={BUTTON_ICON} disabled={index === count - 1} onClick={() => onMove(status, 1)} aria-label="Xuống"><MenuIcon name="arrow-down" className="size-4" /></button>
-        <RowMenu items={[{ label: 'Xóa', icon: 'trash', danger: true, disabled: status.so_task > 0, title: status.so_task > 0 ? `Đang có ${status.so_task} task dùng` : undefined, onClick: () => onDelete(status) }]} />
-      </td>
-    </tr>
+    <div className="min-w-56" onBlur={commitName}>
+      <TextInput
+        label={`Tên trạng thái ${status.ten}`} isLabelHidden value={name} onChange={setName} htmlName={`ten_${status.id}`}
+        onEnter={commitName}
+        onKeyDown={(e) => { if (e.key === 'Escape') setName(status.ten); }}
+      />
+    </div>
   );
 }
 
@@ -86,45 +78,53 @@ export default function StatusManager() {
     if (ok) run(() => deleteStatus(status.id), 'Đã xóa trạng thái');
   };
 
+  const change = (s, patch) => run(() => updateStatus(s.id, patch));
   const pageItems = statuses.slice((page - 1) * limit, page * limit);
+  const columns = [
+    { key: 'stt', header: '#', renderCell: (s) => pageItems.indexOf(s) + 1 + (page - 1) * limit },
+    { key: 'ten', header: 'Tên trạng thái', renderCell: (s) => <NameCell key={`${s.id}-${s.ten}`} status={s} onChange={change} /> },
+    {
+      key: 'mau', header: 'Màu',
+      renderCell: (s) => <Selector label={`Màu của ${s.ten}`} isLabelHidden width={150} value={s.mau} options={COLOR_OPTIONS} onChange={(v) => v && change(s, { mau: v })} />,
+    },
+    { key: 'xem_truoc', header: 'Xem trước', renderCell: (s) => <StatusBadge name={s.ten} color={s.mau} /> },
+    { key: 'la_hoan_thanh', header: 'Hoàn thành', renderCell: (s) => <CheckboxInput label={`${s.ten} là trạng thái hoàn thành`} isLabelHidden value={Boolean(s.la_hoan_thanh)} onChange={(checked) => change(s, { la_hoan_thanh: checked })} /> },
+    { key: 'yeu_cau_hoan_tat', header: 'Yêu cầu 100% + checklist', renderCell: (s) => <CheckboxInput label={`${s.ten} yêu cầu 100% và checklist`} isLabelHidden value={Boolean(s.yeu_cau_hoan_tat)} onChange={(checked) => change(s, { yeu_cau_hoan_tat: checked })} /> },
+    { key: 'so_task', header: 'Số task', renderCell: (s) => <span className="tabular-nums">{s.so_task}</span> },
+    {
+      key: 'thao_tac', header: '',
+      renderCell: (s) => {
+        const index = statuses.indexOf(s);
+        return (
+          <span className="inline-flex items-center gap-1">
+            <Button label="Lên" size="sm" isIconOnly icon={<Icon icon={ArrowUp} />} isDisabled={index === 0} onClick={() => run(() => moveStatus(s.id, -1))} />
+            <Button label="Xuống" size="sm" isIconOnly icon={<Icon icon={ArrowDown} />} isDisabled={index === statuses.length - 1} onClick={() => run(() => moveStatus(s.id, 1))} />
+            <RowMenu items={[{ label: s.so_task > 0 ? `Xóa (đang có ${s.so_task} task dùng)` : 'Xóa', icon: 'trash', danger: true, disabled: s.so_task > 0, onClick: () => remove(s) }]} />
+          </span>
+        );
+      },
+    },
+  ];
+
   return (
-    <div>
-      <h1 className="mb-4 text-xl font-semibold">Quản lý trạng thái</h1>
-      <form onSubmit={add} noValidate className={`${CARD_CLASS} mb-4 flex flex-wrap items-end gap-3`}>
-        <div><label htmlFor="new-status-name" className="mb-1 block text-sm">Tên trạng thái</label><input id="new-status-name" name="ten" className={INPUT_CLASS} value={form.ten} onChange={(e) => setForm({ ...form, ten: e.target.value })} /></div>
-        <div>
-          <label htmlFor="new-status-color" className="mb-1 block text-sm">Màu</label>
-          <select id="new-status-color" name="mau" className={INPUT_CLASS} value={form.mau} onChange={(e) => setForm({ ...form, mau: e.target.value })}>
-            {Object.entries(STATUS_COLOR_OPTIONS).map(([key, opt]) => <option key={key} value={key}>{opt.label}</option>)}
-          </select>
-        </div>
-        <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="la_hoan_thanh" checked={form.la_hoan_thanh} onChange={(e) => setForm({ ...form, la_hoan_thanh: e.target.checked })} /> Hoàn thành</label>
-        <label className="flex items-center gap-1 text-sm"><input type="checkbox" name="yeu_cau_hoan_tat" checked={form.yeu_cau_hoan_tat} onChange={(e) => setForm({ ...form, yeu_cau_hoan_tat: e.target.checked })} /> Yêu cầu 100% + checklist</label>
-        <div className="text-sm"><span className="mb-1 block">Xem trước</span>{form.ten.trim() ? <StatusBadge name={form.ten.trim()} color={form.mau} /> : <span className="text-muted">—</span>}</div>
-        <button type="submit" className={BUTTON_PRIMARY}>Thêm</button>
-      </form>
+    <div className="flex flex-col gap-4">
+      <Heading level={1}>Quản lý trạng thái</Heading>
+      <Card>
+        <form onSubmit={add} noValidate className="flex flex-wrap items-end gap-3">
+          <TextInput label="Tên trạng thái" htmlName="ten" value={form.ten} onChange={(v) => setForm({ ...form, ten: v })} />
+          <Selector label="Màu" width={150} value={form.mau} options={COLOR_OPTIONS} onChange={(v) => setForm({ ...form, mau: v ?? 'gray' })} />
+          <CheckboxInput label="Hoàn thành" value={form.la_hoan_thanh} onChange={(c) => setForm({ ...form, la_hoan_thanh: c })} />
+          <CheckboxInput label="Yêu cầu 100% + checklist" value={form.yeu_cau_hoan_tat} onChange={(c) => setForm({ ...form, yeu_cau_hoan_tat: c })} />
+          <div className="flex flex-col gap-1">
+            <Text type="supporting" color="secondary">Xem trước</Text>
+            {form.ten.trim() ? <StatusBadge name={form.ten.trim()} color={form.mau} /> : <Text color="secondary">—</Text>}
+          </div>
+          <Button type="submit" variant="primary" label="Thêm" />
+        </form>
+      </Card>
       <ErrorBox message={error} onRetry={reload} />
       {loading && <Loading />}
-      <div className="overflow-x-auto rounded-xl border border-border-strong bg-surface">
-        <table className={`w-full text-sm ${TABLE_BORDER_CLASS}`}>
-          <thead className="bg-surface-hover text-left">
-            <tr>
-              <th className="px-3 py-1.5">#</th><th className="px-3 py-1.5">Tên trạng thái</th><th className="px-3 py-1.5">Màu</th><th className="px-3 py-1.5">Xem trước</th>
-              <th className="px-3 py-1.5">Hoàn thành</th><th className="px-3 py-1.5">Yêu cầu 100% + checklist</th><th className="px-3 py-1.5">Số task</th><th className="px-3 py-1.5" />
-            </tr>
-          </thead>
-          <tbody>
-            {pageItems.map((status, i) => (
-              <StatusRow
-                key={`${status.id}-${status.ten}`} status={status} index={(page - 1) * limit + i} count={statuses.length}
-                onChange={(s, patch) => run(() => updateStatus(s.id, patch))}
-                onMove={(s, dir) => run(() => moveStatus(s.id, dir))}
-                onDelete={remove}
-              />
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable data={pageItems} columns={columns} idKey="id" density="compact" />
       <Pagination total={statuses.length} page={page} limit={limit} unit="trạng thái" onChangePage={setPage} onChangeLimit={(v) => { setLimit(v); setPage(1); }} />
     </div>
   );

@@ -1,5 +1,7 @@
 // Cổng đăng nhập: hỏi /api/auth/me, chưa đăng nhập → Login, bị ép đổi mật khẩu → ForceChangePassword.
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Banner } from '@astryxdesign/core/Banner';
+import { Spinner } from '@astryxdesign/core/Spinner';
 import { getMe, logout as apiLogout } from '../api.js';
 import ForceChangePassword from '../pages/ForceChangePassword.jsx';
 import Login from '../pages/Login.jsx';
@@ -31,9 +33,9 @@ export default function AuthGate({ children }) {
   const logout = useCallback(async () => { await apiLogout().catch(() => null); await reload(); }, [reload]);
   const value = useMemo(() => ({ user: state.user, reload, logout }), [state.user, reload, logout]);
 
-  if (state.loading) return <p className="p-6 text-sm text-muted">Đang tải...</p>;
+  if (state.loading) return <div className="p-6"><Spinner size="md" label="Đang tải..." /></div>;
   if (state.error && !state.user) {
-    return <div className="m-6 rounded-lg border border-error-border bg-error-bg px-3 py-2 text-sm text-error-text">{state.error}</div>;
+    return <div className="m-6"><Banner status="error" title={state.error} /></div>;
   }
   if (!state.user) return <Login needsSetup={state.needsSetup} canSetup={state.canSetup} onDone={reload} />;
   if (state.user.bat_buoc_doi_mat_khau) return <AuthContext.Provider value={value}><ForceChangePassword /></AuthContext.Provider>;
