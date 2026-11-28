@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { Banner } from '@astryxdesign/core/Banner';
 import { Button } from '@astryxdesign/core/Button';
 import { DateTimeInput } from '@astryxdesign/core/DateTimeInput';
-import { Field } from '@astryxdesign/core/Field';
 import { Link } from '@astryxdesign/core/Link';
 import { NumberInput } from '@astryxdesign/core/NumberInput';
 import { Selector } from '@astryxdesign/core/Selector';
+import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import {
   fromInputDateTime, isHttpUrl, LINK_MESSAGE, PWIRE_NUMBER_MESSAGE, PWIRE_NUMBER_PATTERN,
@@ -145,9 +145,10 @@ export default function TaskForm({ initialValues, showProgress = false, submitLa
           </>
         )}
       </div>
-      <Field label="Ghi chú" inputID="task-ghi_chu">
+      <div className="flex flex-col gap-1">
+        <Text weight="medium">Ghi chú</Text>
         <RichNoteEditor id="task-ghi_chu" value={values.ghi_chu} onChange={(html) => set('ghi_chu', html)} />
-      </Field>
+      </div>
       {formError && <Banner status="error" title={formError} />}
       <div><Button type="submit" variant="primary" label={saving ? 'Đang lưu...' : submitLabel} isDisabled={saving} /></div>
     </form>

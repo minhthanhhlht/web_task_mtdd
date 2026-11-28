@@ -8,6 +8,7 @@ Nhật ký phát triển (mới nhất ở trên).
 - Viết lại: App (AppShell + SideNav), Login, ForceChangePassword, TaskList/Archive (Table + sắp xếp phía backend), TaskNew/TaskDetail/TaskForm (TextInput, DateTimeInput, Selector, NumberInput), EndOfDay, Checklist (TabList, RadioList), StatusManager, DataManager, DeletedTasks, Accounts và các component dùng chung. `useToast`/`useDialog` giữ nguyên API, dựng trên Toast/AlertDialog/Dialog của Astryx. Thêm `DataTable`, `PasswordField`, `RouterLink`; bỏ `DateTimeInput`, `FieldError`, `MenuIcon`, `PasswordInput`, hằng class trong `constants.js`.
 - `RichNoteEditor` giữ tự viết (HTML đã lọc, ảnh thu nhỏ), thanh công cụ dùng Button Astryx.
 - Khác biệt hành vi giao diện: ô ngày giờ là hai ô (ngày, giờ); ô bắt buộc hiện "Bắt buộc" thay cho dấu `*`; menu bên tự thành ngăn kéo trên màn hẹp; theme đen–trắng thay màu nhấn xanh dương.
+- Ô Ghi chú dùng nhãn `Text` thay `Field` (nhãn `for` trỏ vào `contentEditable` bị Chrome cảnh báo).
 - Sửa `PROJECT_SPEC.md` (mục 1, 2, 3, 7.1, 7.4–7.6, 10, 11), `RULES.md` (mục 2, 4), `CLAUDE.md` (mục UI/UX).
 
 ## 2026-11-26 — Nút ẩn/hiện mật khẩu
