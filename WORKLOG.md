@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Sửa huy hiệu số ở menu bên bị tô xanh
+
+- `index.css`: quy tắc tô màu chính cho mục menu đang chọn loại trừ `.astryx-badge`, nên số task chưa cập nhật giữ chữ trắng trên nền đỏ khi đang ở trang Cập nhật tiến độ.
+
 ## 2026-11-28 — Làm đẹp menu bên
 
 - `index.css` (layer components): mục menu cao 40px, cách nhau 4px (trước dính sát nên nền khi rê chuột chạm nhau), padding ngang 12px, mục đang chọn tô nhạt màu chính (12%) chữ xanh đậm, tiêu đề menu thẳng hàng với các mục.

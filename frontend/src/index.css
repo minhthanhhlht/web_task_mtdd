@@ -21,7 +21,8 @@
     color: var(--color-text-accent);
     font-weight: 600;
   }
-  .astryx-side-nav-item[data-selected]:not([data-selected="false"]) * { color: var(--color-text-accent); }
+  /* Chữ/icon trong mục đang chọn đổi sang màu chính, trừ huy hiệu số (giữ màu trạng thái của nó) */
+  .astryx-side-nav-item[data-selected]:not([data-selected="false"]) *:not(.astryx-badge, .astryx-badge *) { color: var(--color-text-accent); }
 }
 
 /* Màu chính (nút chính, liên kết, viền focus, mục đang chọn) đổi từ đen của theme neutral sang xanh dương.
