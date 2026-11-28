@@ -1,7 +1,6 @@
 // Trang "Cài đặt" (chỉ admin): sao lưu dữ liệu — tạo bản sao lưu ngay, xem danh sách, tải về máy, xóa.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@astryxdesign/core/Button';
-import { Card } from '@astryxdesign/core/Card';
 import { EmptyState } from '@astryxdesign/core/EmptyState';
 import { Heading } from '@astryxdesign/core/Heading';
 import { Icon } from '@astryxdesign/core/Icon';
@@ -84,28 +83,24 @@ export default function SettingsPage() {
   return (
     <div className="flex flex-col gap-4">
       <Heading level={1}>Cài đặt</Heading>
-      <Card>
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <Heading level={2}>Sao lưu dữ liệu</Heading>
-              <Text color="secondary">Bản sao lưu là file database nằm trên máy chủ (thư mục backups cạnh database). Hãy tải về máy định kỳ để có bản lưu ở nơi khác.</Text>
-            </div>
-            <Button label={creating ? 'Đang sao lưu...' : 'Tạo bản sao lưu ngay'} variant="primary" icon={<Icon icon={DatabaseBackup} />} isDisabled={creating} onClick={create} />
-          </div>
-          <ErrorBox message={error} onRetry={load} />
-          {loading && items.length === 0 && <Loading />}
-          <DataTable
-            minWidth={760}
-            data={items}
-            columns={columns}
-            idKey="ten"
-            density="compact"
-            isLoading={loading}
-            emptyState={loading ? false : <EmptyState title="Chưa có bản sao lưu nào." isCompact />}
-          />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <Heading level={2}>Sao lưu dữ liệu</Heading>
+          <Text color="secondary">Bản sao lưu là file database nằm trên máy chủ (thư mục backups cạnh database). Hãy tải về máy định kỳ để có bản lưu ở nơi khác.</Text>
         </div>
-      </Card>
+        <Button label={creating ? 'Đang sao lưu...' : 'Tạo bản sao lưu ngay'} variant="primary" icon={<Icon icon={DatabaseBackup} />} isDisabled={creating} onClick={create} />
+      </div>
+      <ErrorBox message={error} onRetry={load} />
+      {loading && items.length === 0 && <Loading />}
+      <DataTable
+        minWidth={760}
+        data={items}
+        columns={columns}
+        idKey="ten"
+        density="compact"
+        isLoading={loading}
+        emptyState={loading ? false : <EmptyState title="Chưa có bản sao lưu nào." isCompact />}
+      />
     </div>
   );
 }

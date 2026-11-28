@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Sửa trang Cài đặt: bỏ thẻ lồng nhau
+
+- `Settings.jsx`: bảng sao lưu không còn nằm trong `Card` (DataTable đã là khung thẻ nên bị hai lớp khung, tiêu đề xám lệch). Tiêu đề, mô tả, nút đứng trên bảng.
+
 ## 2026-11-28 — Trang Cài đặt: tạo, xem, tải, xóa bản sao lưu
 
 - Backend: `backups.js` (tạo/liệt kê/đường dẫn/xóa, chặn tên file có đường dẫn), API `/api/backups` (GET, POST, GET /:ten tải về, DELETE /:ten), thêm vào `ADMIN_ONLY_RULES`; `backup.js` dùng lại `createBackup`.
