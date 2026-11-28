@@ -6,7 +6,7 @@ import { Spinner } from '@astryxdesign/core/Spinner';
 // Vòng quay Đang tải ở giữa: fullPage = giữa cả vùng nội dung (khi chờ tải cả trang), mặc định = giữa dòng (khi tải thêm dưới bảng)
 export function Loading({ fullPage = false }) {
   return (
-    <div className={`flex items-center justify-center ${fullPage ? 'min-h-[60vh]' : 'py-4'}`}>
+    <div className={`flex items-center justify-center ${fullPage ? 'min-h-[calc(100dvh-2rem)]' : 'py-4'}`}>
       <Spinner size="md" label="Đang tải..." />
     </div>
   );
