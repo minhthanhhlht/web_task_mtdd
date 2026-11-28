@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Backup nhiều lần trong ngày
+
+- `backend/backup.js`: tên file `tasks_<YYYY-MM-DD_HHmm>.db` (trước đây theo ngày nên lần sau ghi đè lần trước). Thử chạy với DB tạm: ra file `tasks_2026-11-28_2220.db`. Cập nhật mục 9 của `PROJECT_SPEC.md` kèm cách đặt lịch trên Coolify (12:30 và 17:30).
+
 ## 2026-11-28 — Bảng đẹp và mượt hơn
 
 - `DataTable` đặt trong khung thẻ bo góc có viền; tiêu đề nền nhạt chữ phụ 13px; dòng thoáng hơn (padding dọc 10px, cao ~44px); hover chuyển màu mượt; dòng mới hiện dần (tắt khi người dùng chọn giảm chuyển động).
