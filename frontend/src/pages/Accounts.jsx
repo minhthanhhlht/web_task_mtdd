@@ -142,7 +142,7 @@ function ManageUsers() {
           {/* Mật khẩu hiện chữ rõ vì admin cần đọc để đưa cho người dùng */}
           <TextInput label="Mật khẩu" htmlName="mat_khau" autoComplete="off" value={form.mat_khau} onChange={(v) => setForm({ ...form, mat_khau: v })} />
           <Selector label="Vai trò" width={120} value={form.vai_tro} options={ROLE_OPTIONS} onChange={(v) => setForm({ ...form, vai_tro: v ?? 'user' })} />
-          <Button type="submit" variant="primary" label="Thêm tài khoản" />
+          <div className="flex h-8 items-center"><Button type="submit" variant="primary" label="Thêm tài khoản" /></div>
         </form>
         <ErrorBox message={error} onRetry={load} />
         <DataTable minWidth={790} data={users} columns={columns} idKey="id" density="compact" />

@@ -114,13 +114,13 @@ export default function StatusManager() {
         <form onSubmit={add} noValidate className="flex flex-wrap items-end gap-3">
           <TextInput label="Tên trạng thái" htmlName="ten" value={form.ten} onChange={(v) => setForm({ ...form, ten: v })} />
           <Selector label="Màu" width={150} value={form.mau} options={COLOR_OPTIONS} onChange={(v) => setForm({ ...form, mau: v ?? 'gray' })} />
-          <CheckboxInput label="Hoàn thành" value={form.la_hoan_thanh} onChange={(c) => setForm({ ...form, la_hoan_thanh: c })} />
-          <CheckboxInput label="Yêu cầu 100% + checklist" value={form.yeu_cau_hoan_tat} onChange={(c) => setForm({ ...form, yeu_cau_hoan_tat: c })} />
-          <div className="flex flex-col gap-1">
-            <Text type="supporting" color="secondary">Xem trước</Text>
+          <div className="flex h-8 items-center"><CheckboxInput label="Hoàn thành" value={form.la_hoan_thanh} onChange={(c) => setForm({ ...form, la_hoan_thanh: c })} /></div>
+          <div className="flex h-8 items-center"><CheckboxInput label="Yêu cầu 100% + checklist" value={form.yeu_cau_hoan_tat} onChange={(c) => setForm({ ...form, yeu_cau_hoan_tat: c })} /></div>
+          <div className="flex h-8 items-center gap-2">
+            <Text type="supporting" color="secondary">Xem trước:</Text>
             {form.ten.trim() ? <StatusBadge name={form.ten.trim()} color={form.mau} /> : <Text color="secondary">—</Text>}
           </div>
-          <Button type="submit" variant="primary" label="Thêm" />
+          <div className="flex h-8 items-center"><Button type="submit" variant="primary" label="Thêm" /></div>
         </form>
       </Card>
       <ErrorBox message={error} onRetry={reload} />

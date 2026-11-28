@@ -115,7 +115,7 @@ export default function DataManager() {
       {loading && <Loading />}
       <Card>
         <div className="flex flex-col gap-3">
-          <form onSubmit={add} noValidate className="flex flex-wrap items-end gap-2">
+          <form onSubmit={add} noValidate className="flex flex-wrap items-center gap-2">
             <div className="w-64"><TextInput label="Tên mới" isLabelHidden placeholder="Tên mới" value={name} onChange={setName} htmlName="ten_moi" /></div>
             <Button type="submit" variant="primary" label="Thêm" />
             <Button label="Thêm nhiều" onClick={() => setShowBulk(!showBulk)} />

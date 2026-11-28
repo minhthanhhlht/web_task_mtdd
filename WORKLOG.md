@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Căn thẳng hàng các nút/ô trong form và thanh công cụ
+
+- Form thêm trạng thái và thêm tài khoản: ô tick, nút, "Xem trước" bọc `h-8 flex items-center` để thẳng hàng với tâm ô nhập (trước canh đáy nên lệch). Thanh công cụ danh sách, cập nhật tiến độ, checklist, data đổi `items-end` → `items-center`.
+
 ## 2026-11-28 — Nút đổi sáng/tối dạng icon
 
 - `App.jsx`: thay ô chọn "Giao diện" bằng nút icon vuông (Sun khi đang tối, Moon khi đang sáng, có tooltip và `label`) cạnh tên tài khoản; bấm đổi sáng ↔ tối. Giá trị `system` vẫn đọc được từ localStorage nhưng giao diện chỉ còn nút đổi hai chế độ.

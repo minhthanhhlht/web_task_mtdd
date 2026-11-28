@@ -133,7 +133,7 @@ export default function TaskListView({ archived }) {
     <div className="flex flex-col gap-3">
       <Heading level={1}>{archived ? 'Đã hoàn thành' : 'Danh sách task đang xử lý'}</Heading>
       {!archived && <TaskStats reportTotal={report.total} />}
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-48 flex-1 sm:max-w-sm">
           <TextInput label="Tìm Số Pwire, tên..." isLabelHidden placeholder="Tìm Số Pwire, tên..." startIcon="search" hasClear value={search} onChange={setSearch} htmlName="tim_so_pwire_ten" />
         </div>

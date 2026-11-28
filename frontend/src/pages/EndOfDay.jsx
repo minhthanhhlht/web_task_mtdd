@@ -170,7 +170,7 @@ export default function EndOfDay() {
   return (
     <div className="flex flex-col gap-3">
       <Heading level={1}>Cập nhật tiến độ</Heading>
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <div className="min-w-48 flex-1 sm:max-w-sm">
           <TextInput label="Tìm task..." isLabelHidden placeholder="Tìm task..." startIcon="search" hasClear value={search} onChange={setSearch} htmlName="tim_task" />
         </div>
