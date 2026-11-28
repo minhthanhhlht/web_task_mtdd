@@ -413,6 +413,14 @@ function normalizeNote(value) {
   return sanitizeNote(note);
 }
 
+// Luật 5.2b: tiến độ 100% chỉ đặt được khi trạng thái yêu cầu hoàn tất (mặc định CLOSED); chỉ kiểm tra khi tiến độ hoặc trạng thái bị đổi
+function assertFullProgressOnlyWhenClosed(status, progress, prefix = '') {
+  if (progress !== 100 || status.yeu_cau_hoan_tat) return;
+  const names = db.prepare('SELECT ten FROM task_statuses WHERE yeu_cau_hoan_tat = 1 ORDER BY thu_tu, id').all().map((row) => row.ten);
+  if (names.length === 0) return;
+  throw invalid(`${prefix}Tiến độ 100% chỉ đặt được khi trạng thái là ${names.join(' / ')} (hiện là ${status.ten})`);
+}
+
 // Luật 5.2: chuyển sang trạng thái yêu cầu hoàn tất thì phải 100% và tick hết checklist
 function assertCompletionRule(taskId, status, progress, prefix = '') {
   if (!status.yeu_cau_hoan_tat) return;
@@ -468,7 +476,9 @@ export const updateTask = db.transaction((id, body) => {
   const nextStatusName = data.trang_thai ?? existing.trang_thai;
   const statusChanged = nextStatusName.toLowerCase() !== existing.trang_thai.toLowerCase();
   if (statusChanged || data.tien_do !== undefined && data.tien_do !== existing.tien_do) {
-    assertCompletionRule(id, findStatus(nextStatusName), nextProgress);
+    const nextStatus = findStatus(nextStatusName);
+    assertFullProgressOnlyWhenClosed(nextStatus, nextProgress);
+    assertCompletionRule(id, nextStatus, nextProgress);
   }
 
   // Đổi Số Pwire thì id nội bộ đổi theo: dời các bảng con sang id mới (hoãn kiểm tra khóa ngoại tới lúc commit)
@@ -856,6 +866,8 @@ export const saveEod = db.transaction((items) => {
     if (!status) throw invalid(`${prefix}trang_thai không hợp lệ`);
     // ghi_chu không gửi (undefined) thì giữ nguyên ghi chú hiện tại
     const note = item.ghi_chu === undefined ? task.ghi_chu : normalizeNote(item.ghi_chu);
+    // Luật 100% chỉ kiểm tra khi tiến độ/trạng thái bị đổi (task cũ đã ở 100% mà chưa CLOSED vẫn "Không đổi" được)
+    if (item.tien_do !== task.tien_do || status.ten.toLowerCase() !== task.trang_thai.toLowerCase()) assertFullProgressOnlyWhenClosed(status, item.tien_do, prefix);
     assertCompletionRule(task.id, status, item.tien_do, prefix);
 
     const next = { tien_do: item.tien_do, trang_thai: status.ten, ghi_chu: note };

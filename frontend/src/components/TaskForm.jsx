@@ -53,6 +53,12 @@ export default function TaskForm({ initialValues, showProgress = false, submitLa
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  // Luật: tiến độ 100% chỉ đặt được khi trạng thái yêu cầu hoàn tất (CLOSED); chỉ báo khi tiến độ/trạng thái bị đổi (task cũ đã ở 100% vẫn sửa được ô khác)
+  const closedNames = statuses.filter((s) => s.yeu_cau_hoan_tat).map((s) => s.ten).join(' / ');
+  const fullNotAllowed = Boolean(closedNames) && showProgress && values.tien_do === 100 && !getStatus(values.trang_thai)?.yeu_cau_hoan_tat
+    && (values.tien_do !== initialValues.tien_do || values.trang_thai !== initialValues.trang_thai);
+  const fullMessage = `Tiến độ 100% chỉ đặt được khi trạng thái là ${closedNames}`;
+
   // Đổi một ô và xóa lỗi của ô đó
   const set = (field, value) => {
     setValues((current) => ({ ...current, [field]: value }));
@@ -74,6 +80,7 @@ export default function TaskForm({ initialValues, showProgress = false, submitLa
     if (showProgress) {
       const progress = values.tien_do;
       if (progress === null || progress === undefined || !Number.isInteger(progress) || progress < 0 || progress > 100) found.tien_do = 'Tiến độ phải là số nguyên từ 0 đến 100';
+      else if (fullNotAllowed) found.tien_do = fullMessage;
       else if (getStatus(values.trang_thai)?.yeu_cau_hoan_tat && progress !== 100) found.tien_do = `Chuyển sang ${values.trang_thai} thì tiến độ phải là 100%`;
     }
     return found;
@@ -135,7 +142,7 @@ export default function TaskForm({ initialValues, showProgress = false, submitLa
         </div>
         {showProgress && (
           <>
-            <NumberInput label="Tiến độ (%)" min={0} max={100} isIntegerOnly value={values.tien_do} onChange={(v) => set('tien_do', v)} status={statusOf('tien_do')} />
+            <NumberInput label="Tiến độ (%)" min={0} max={100} isIntegerOnly value={values.tien_do} onChange={(v) => set('tien_do', v)} status={statusOf('tien_do') ?? (fullNotAllowed ? { type: 'error', message: fullMessage } : undefined)} />
             <Selector
               label="Trạng thái" value={values.trang_thai}
               options={statuses.map((status) => ({ value: status.ten, label: status.ten }))}

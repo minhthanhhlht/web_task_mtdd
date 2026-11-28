@@ -2,6 +2,11 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Tiến độ 100% chỉ khi trạng thái CLOSED
+
+- `db.js`: `assertFullProgressOnlyWhenClosed` dùng ở `PUT /api/tasks/:id` và `POST /api/eod` (chỉ khi tiến độ/trạng thái bị đổi). `TaskForm.jsx` báo lỗi ngay dưới ô Tiến độ; `EndOfDay.jsx` chặn khi Lưu tất cả. Mục 5.2 của `PROJECT_SPEC.md`.
+- Thử bằng DB tạm 10/10 (PUT/EOD 100% khi OPEN, IN PROGRESS, CANCELED bị chặn; CLOSED kèm checklist đủ được; CLOSED → REOPEN giữ 100% bị chặn, kèm 90% được) và xem giao diện form báo lỗi.
+
 ## 2026-11-28 — Toast ở góc trên bên phải
 
 - `Toast.jsx`: `LayerProvider toast={{ position: 'topEnd' }}` (trước là góc dưới phải theo mặc định Astryx).

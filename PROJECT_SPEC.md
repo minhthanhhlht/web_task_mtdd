@@ -285,6 +285,8 @@ CREATE INDEX IF NOT EXISTS idx_task_history_task ON task_history(task_id, id);
 
 ### 5.2 Luật "trạng thái yêu cầu hoàn tất"
 
+**Luật 5.2b (tiến độ 100%):** chỉ trạng thái có `yeu_cau_hoan_tat = 1` (mặc định `CLOSED`) mới được tiến độ **100%**. Đặt 100% khi trạng thái khác (kể cả `CANCELED`) → 400 `Tiến độ 100% chỉ đặt được khi trạng thái là CLOSED (hiện là OPEN)` (liệt kê mọi trạng thái yêu cầu hoàn tất, ngăn bằng ` / `; ở `/api/eod` thêm tiền tố `Task <ma_task>: `). Chỉ kiểm tra khi tiến độ hoặc trạng thái bị đổi, nên task cũ đã ở 100% mà chưa CLOSED vẫn bấm "Không đổi" và sửa ô khác được; đổi từ CLOSED sang trạng thái khác thì phải hạ tiến độ dưới 100%. Giao diện báo lỗi ngay dưới ô Tiến độ (form task) và khi bấm Lưu tất cả (Cập nhật tiến độ). Nếu không còn trạng thái nào yêu cầu hoàn tất thì bỏ qua luật.
+
 Khi chuyển task sang trạng thái có `yeu_cau_hoan_tat = 1` (mặc định `CLOSED`): tiến độ (giá trị gửi lên, hoặc hiện tại nếu không gửi) **phải = 100** và **mọi mục checklist phải đã tick**, nếu không → 400 và **không lưu gì**:
 - `Chưa thể chuyển sang CLOSED: tiến độ phải là 100% (hiện tại 90%)`
 - `Chưa thể chuyển sang CLOSED: còn N mục checklist chưa tick`

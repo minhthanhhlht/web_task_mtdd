@@ -91,6 +91,9 @@ export default function EndOfDay() {
     if (ok) send(untouched.map((t) => ({ task_id: t.id, tien_do: t.tien_do, trang_thai: t.trang_thai })), `Đã lưu ${untouched.length} task.`);
   };
 
+  // Tên các trạng thái yêu cầu hoàn tất (mặc định CLOSED): chỉ trạng thái này mới được tiến độ 100%
+  const closedNames = statuses.filter((s) => s.yeu_cau_hoan_tat).map((s) => s.ten).join(' / ');
+
   // Kiểm tra rồi lưu tất cả task đã sửa; ghi chú chỉ gửi khi người dùng sửa ô ghi chú
   const saveAll = () => {
     const ids = Object.keys(edits).map(Number);
@@ -101,6 +104,7 @@ export default function EndOfDay() {
       const e = edits[id];
       const progress = e.tien_do;
       if (progress === null || progress === undefined || !Number.isInteger(progress) || progress < 0 || progress > 100) found[id] = 'Tiến độ phải là số nguyên từ 0 đến 100';
+      else if (progress === 100 && closedNames && !getStatus(e.trang_thai)?.yeu_cau_hoan_tat && task && (progress !== task.tien_do || e.trang_thai !== task.trang_thai)) found[id] = `Tiến độ 100% chỉ đặt được khi trạng thái là ${closedNames}`;
       else if (getStatus(e.trang_thai)?.yeu_cau_hoan_tat && progress !== 100) found[id] = `${e.trang_thai} thì phải 100%`;
       const item = { task_id: id, tien_do: progress, trang_thai: e.trang_thai };
       if (e.noteEdited) item.ghi_chu = e.ghi_chu;
