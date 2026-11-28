@@ -138,10 +138,10 @@ export default function EndOfDay() {
       ),
     },
     {
-      key: 'trang_thai', header: 'Trạng thái', width: pixel(230),
+      key: 'trang_thai', header: 'Trạng thái', width: pixel(250),
       renderCell: (task) => (
         <Selector
-          label={`Trạng thái của ${task.ten}`} isLabelHidden width={180}
+          label={`Trạng thái của ${task.ten}`} isLabelHidden width={210}
           value={(edits[task.id] ?? task).trang_thai}
           options={statuses.map((s) => ({ value: s.ten, label: s.ten }))}
           onChange={(v) => edit(task, { trang_thai: v ?? task.trang_thai })}
@@ -179,7 +179,7 @@ export default function EndOfDay() {
         </div>
       </div>
       <ErrorBox message={error} onRetry={load} />
-      <DataTable minWidth={1190} data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
+      <DataTable minWidth={1210} data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
       {loading && <Loading />}
       <Pagination total={data.total} page={page} limit={limit} onChangePage={setPage} onChangeLimit={(v) => { changeLimit(v); setPage(1); }} />
     </div>

@@ -110,7 +110,7 @@ export default function TaskListView({ archived }) {
       renderCell: (t) => <span className={`whitespace-nowrap tabular-nums ${archived ? '' : deadlineTone(t.deadline)}`} title={t.deadline ?? undefined}>{t.deadline ? shortDateTime(t.deadline).slice(0, 16) : '—'}</span>,
     },
     { key: 'tien_do', header: 'Tiến độ', width: pixel(150), sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
-    { key: 'trang_thai', header: 'Trạng thái', width: proportional(1.2, { minWidth: 120 }), sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
+    { key: 'trang_thai', header: 'Trạng thái', width: proportional(1.2, { minWidth: 190 }), sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
     {
       key: 'checklist', header: 'Checklist', width: pixel(100), sortable: true,
       renderCell: (t) => <span className={`tabular-nums ${t.checklist_tong > 0 && t.checklist_da_xong === t.checklist_tong ? 'font-medium text-(--color-text-success)' : ''}`}>{t.checklist_da_xong}/{t.checklist_tong}</span>,
@@ -160,7 +160,7 @@ export default function TaskListView({ archived }) {
 
       <ErrorBox message={error} onRetry={load} />
       <DataTable
-        minWidth={isAdmin ? 1410 : 1290}
+        minWidth={isAdmin ? 1480 : 1360}
         data={data.items}
         columns={columns}
         idKey="id"
