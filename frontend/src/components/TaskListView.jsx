@@ -100,9 +100,9 @@ export default function TaskListView({ archived }) {
   }, [toast]);
 
   const columns = useMemo(() => [
-    ...(isAdmin ? [{ key: 'chu_so_huu', header: 'PIC', width: pixel(52), sortable: true, renderCell: (t) => (t.chu_so_huu ? <span title={t.chu_so_huu}><UserChip name={t.chu_so_huu} showName={false} /></span> : '—') }] : []),
+    ...(isAdmin ? [{ key: 'chu_so_huu', header: 'PIC', width: pixel(72), sortable: true, renderCell: (t) => (t.chu_so_huu ? <span title={t.chu_so_huu}><UserChip name={t.chu_so_huu} showName={false} /></span> : '—') }] : []),
     { key: 'ma_task', header: 'Số Pwire', width: pixel(138), sortable: true, renderCell: (t) => <span className="whitespace-nowrap"><Link href={`/tasks/${t.id}`}>{t.ma_task}</Link></span> },
-    { key: 'ten', header: 'Tên', width: proportional(1, { minWidth: 130 }), sortable: true, renderCell: (t) => <span className="block truncate" title={t.ten}>{t.ten}</span> },
+    { key: 'ten', header: 'Tên', width: proportional(1, { minWidth: 110 }), sortable: true, renderCell: (t) => <span className="block truncate" title={t.ten}>{t.ten}</span> },
     { key: 'link_test_case', header: 'Link Pwire', width: pixel(82), sortable: true, renderCell: (t) => <PwireLink url={t.link_test_case} compact /> },
     { key: 'nguoi_giao', header: 'Người giao', width: pixel(100), sortable: true, renderCell: (t) => <span className="block truncate" title={t.nguoi_giao}>{t.nguoi_giao}</span> },
     {
