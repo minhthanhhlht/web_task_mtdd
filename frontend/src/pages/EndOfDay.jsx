@@ -113,9 +113,9 @@ export default function EndOfDay() {
 
   const columns = [
     { key: 'task', header: 'Task', width: proportional(2, { minWidth: 150 }), renderCell: (task) => <span className="block truncate font-semibold" title={task.ten}>{task.ten}</span> },
-    { key: 'ma_task', header: 'Số Pwire', width: pixel(140), renderCell: (task) => <span className="whitespace-nowrap">{task.ma_task}</span> },
+    { key: 'ma_task', header: 'Số Pwire', width: pixel(170), renderCell: (task) => <span className="whitespace-nowrap">{task.ma_task}</span> },
     {
-      key: 'cap_nhat', header: 'Cập nhật', width: pixel(250),
+      key: 'cap_nhat', header: 'Cập nhật', width: pixel(330),
       renderCell: (task) => {
         const rs = getReportStatus(task, now);
         return (
@@ -127,7 +127,7 @@ export default function EndOfDay() {
       },
     },
     {
-      key: 'tien_do', header: 'Tiến độ (%)', width: pixel(120),
+      key: 'tien_do', header: 'Tiến độ (%)', width: pixel(150),
       renderCell: (task) => (
         <NumberInput
           label={`Tiến độ của ${task.ten}`} isLabelHidden min={0} max={100} isIntegerOnly width={100}
@@ -138,7 +138,7 @@ export default function EndOfDay() {
       ),
     },
     {
-      key: 'trang_thai', header: 'Trạng thái', width: pixel(200),
+      key: 'trang_thai', header: 'Trạng thái', width: pixel(230),
       renderCell: (task) => (
         <Selector
           label={`Trạng thái của ${task.ten}`} isLabelHidden width={180}
@@ -179,7 +179,7 @@ export default function EndOfDay() {
         </div>
       </div>
       <ErrorBox message={error} onRetry={load} />
-      <DataTable minWidth={1010} data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
+      <DataTable minWidth={1190} data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
       {loading && <Loading />}
       <Pagination total={data.total} page={page} limit={limit} onChangePage={setPage} onChangeLimit={(v) => { changeLimit(v); setPage(1); }} />
     </div>

@@ -116,13 +116,13 @@ function ManageUsers() {
       renderCell: (u) => <span>{u.ten_dang_nhap}{u.bat_buoc_doi_mat_khau ? <span className="ml-2"><Badge variant="warning" label="chưa đổi mật khẩu" /></span> : null}</span>,
     },
     {
-      key: 'vai_tro', header: 'Vai trò', width: pixel(160),
+      key: 'vai_tro', header: 'Vai trò', width: pixel(180),
       renderCell: (u) => <Selector label={`Vai trò của ${u.ten_dang_nhap}`} isLabelHidden width={120} value={u.vai_tro} options={ROLE_OPTIONS} onChange={(v) => v && run(() => updateUser(u.id, { vai_tro: v }), 'Đã đổi vai trò')} />,
     },
-    { key: 'tao_luc', header: 'Tạo lúc', width: pixel(190), renderCell: (u) => <span className="tabular-nums">{formatDateTime(u.tao_luc)}</span> },
-    { key: 'so_phien', header: 'Số phiên', width: pixel(100), renderCell: (u) => <span className="tabular-nums">{u.so_phien}</span> },
+    { key: 'tao_luc', header: 'Tạo lúc', width: pixel(220), renderCell: (u) => <span className="tabular-nums">{formatDateTime(u.tao_luc)}</span> },
+    { key: 'so_phien', header: 'Số phiên', width: pixel(120), renderCell: (u) => <span className="tabular-nums">{u.so_phien}</span> },
     {
-      key: 'thao_tac', header: '', width: pixel(80),
+      key: 'thao_tac', header: '', width: pixel(100),
       renderCell: (u) => (
         <RowMenu items={[
           { label: 'Đặt lại mật khẩu', icon: 'key', onClick: () => resetPassword(u) },
@@ -145,7 +145,7 @@ function ManageUsers() {
           <div className="flex h-8 items-center"><Button type="submit" variant="primary" label="Thêm tài khoản" /></div>
         </form>
         <ErrorBox message={error} onRetry={load} />
-        <DataTable minWidth={790} data={users} columns={columns} idKey="id" density="compact" />
+        <DataTable minWidth={900} data={users} columns={columns} idKey="id" density="compact" />
       </div>
     </Card>
   );

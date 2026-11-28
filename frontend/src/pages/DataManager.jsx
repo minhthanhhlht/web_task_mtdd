@@ -87,11 +87,11 @@ export default function DataManager() {
 
   const pageItems = items.slice((page - 1) * limit, page * limit);
   const columns = [
-    { key: 'stt', header: '#', width: pixel(60), renderCell: (item) => items.indexOf(item) + 1 },
+    { key: 'stt', header: '#', width: pixel(70), renderCell: (item) => items.indexOf(item) + 1 },
     { key: 'ten', header: 'Tên', width: proportional(1, { minWidth: 280 }), renderCell: (item) => <NameCell key={`${item.id}-${item.ten}`} item={item} onRename={(it, next) => run(() => updateDataItem(it.id, { ten: next }))} /> },
-    { key: 'so_task', header: 'Số task đang dùng', width: pixel(170), renderCell: (item) => <span className="tabular-nums">{item.so_task}</span> },
+    { key: 'so_task', header: 'Số task đang dùng', width: pixel(200), renderCell: (item) => <span className="tabular-nums">{item.so_task}</span> },
     {
-      key: 'thao_tac', header: '', width: pixel(140),
+      key: 'thao_tac', header: '', width: pixel(160),
       renderCell: (item) => {
         const index = items.indexOf(item);
         return (
@@ -128,7 +128,7 @@ export default function DataManager() {
           )}
         </div>
       </Card>
-      <DataTable minWidth={650} data={pageItems} columns={columns} idKey="id" density="compact" />
+      <DataTable minWidth={710} data={pageItems} columns={columns} idKey="id" density="compact" />
       <Pagination total={items.length} page={page} limit={limit} unit="mục" onChangePage={setPage} onChangeLimit={(v) => { setLimit(v); setPage(1); }} />
     </div>
   );

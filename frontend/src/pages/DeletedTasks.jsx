@@ -89,15 +89,15 @@ export default function DeletedTasks() {
   }, [dialog, toast, load]);
 
   const columns = useMemo(() => [
-    { key: 'chu_so_huu', header: 'PIC', width: pixel(110), sortable: true, renderCell: (t) => (t.chu_so_huu ? <UserChip name={t.chu_so_huu} /> : '—') },
-    { key: 'ma_task', header: 'Số Pwire', width: pixel(140), sortable: true, renderCell: (t) => <span className="whitespace-nowrap">{t.ma_task}</span> },
-    { key: 'ten', header: 'Tên', width: proportional(1, { minWidth: 150 }), sortable: true, renderCell: (t) => <span className="block truncate" title={t.ten}>{t.ten}</span> },
-    { key: 'trang_thai', header: 'Trạng thái', width: pixel(150), sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
-    { key: 'tien_do', header: 'Tiến độ', width: pixel(120), sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
-    { key: 'xoa_luc', header: 'Xóa lúc', width: pixel(160), sortable: true, renderCell: (t) => <span className="whitespace-nowrap tabular-nums">{formatDateTime(t.xoa_luc)}</span> },
-    { key: 'nguoi_xoa', header: 'Người xóa', width: pixel(110), sortable: true, renderCell: (t) => (t.nguoi_xoa ? <UserChip name={t.nguoi_xoa} /> : '—') },
+    { key: 'chu_so_huu', header: 'PIC', width: pixel(130), sortable: true, renderCell: (t) => (t.chu_so_huu ? <UserChip name={t.chu_so_huu} /> : '—') },
+    { key: 'ma_task', header: 'Số Pwire', width: pixel(170), sortable: true, renderCell: (t) => <span className="whitespace-nowrap">{t.ma_task}</span> },
+    { key: 'ten', header: 'Tên', width: proportional(3, { minWidth: 150 }), sortable: true, renderCell: (t) => <span className="block truncate" title={t.ten}>{t.ten}</span> },
+    { key: 'trang_thai', header: 'Trạng thái', width: pixel(190), sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
+    { key: 'tien_do', header: 'Tiến độ', width: pixel(150), sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
+    { key: 'xoa_luc', header: 'Xóa lúc', width: pixel(190), sortable: true, renderCell: (t) => <span className="whitespace-nowrap tabular-nums">{formatDateTime(t.xoa_luc)}</span> },
+    { key: 'nguoi_xoa', header: 'Người xóa', width: pixel(130), sortable: true, renderCell: (t) => (t.nguoi_xoa ? <UserChip name={t.nguoi_xoa} /> : '—') },
     {
-      key: 'thao_tac', header: '', width: pixel(130),
+      key: 'thao_tac', header: '', width: pixel(160),
       renderCell: (t) => (
         <span className="inline-flex items-center gap-1">
           <Button label="Khôi phục" size="sm" isDisabled={busyId === t.id} onClick={() => restore(t)} />
@@ -116,7 +116,7 @@ export default function DeletedTasks() {
       </div>
       <ErrorBox message={error} onRetry={load} />
       <DataTable
-        minWidth={1070}
+        minWidth={1270}
         data={data.items} columns={columns} idKey="id" density="compact" hasHover plugins={{ sort: sortPlugin }}
         emptyState={loading ? false : <EmptyState title={q ? 'Không có task đã xóa nào khớp.' : 'Chưa có task nào bị xóa.'} isCompact />}
       />
