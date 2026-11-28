@@ -53,9 +53,9 @@ export default function TaskForm({ initialValues, showProgress = false, submitLa
   const [formError, setFormError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Luật: tiến độ 100% chỉ đặt được khi trạng thái yêu cầu hoàn tất (CLOSED); chỉ báo khi tiến độ/trạng thái bị đổi (task cũ đã ở 100% vẫn sửa được ô khác)
-  const closedNames = statuses.filter((s) => s.yeu_cau_hoan_tat).map((s) => s.ten).join(' / ');
-  const fullNotAllowed = Boolean(closedNames) && showProgress && values.tien_do === 100 && !getStatus(values.trang_thai)?.yeu_cau_hoan_tat
+  // Luật: tiến độ 100% chỉ đặt được khi trạng thái là trạng thái hoàn thành (CLOSED, CANCELED); chỉ báo khi tiến độ/trạng thái bị đổi (task cũ đã ở 100% vẫn sửa được ô khác)
+  const closedNames = statuses.filter((s) => s.la_hoan_thanh).map((s) => s.ten).join(' / ');
+  const fullNotAllowed = Boolean(closedNames) && showProgress && values.tien_do === 100 && !getStatus(values.trang_thai)?.la_hoan_thanh
     && (values.tien_do !== initialValues.tien_do || values.trang_thai !== initialValues.trang_thai);
   const fullMessage = `Tiến độ 100% chỉ đặt được khi trạng thái là ${closedNames}`;
 

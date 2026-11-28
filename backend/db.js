@@ -413,10 +413,10 @@ function normalizeNote(value) {
   return sanitizeNote(note);
 }
 
-// Luật 5.2b: tiến độ 100% chỉ đặt được khi trạng thái yêu cầu hoàn tất (mặc định CLOSED); chỉ kiểm tra khi tiến độ hoặc trạng thái bị đổi
+// Luật 5.2b: tiến độ 100% chỉ đặt được khi trạng thái là trạng thái hoàn thành (mặc định CLOSED, CANCELED); chỉ kiểm tra khi tiến độ hoặc trạng thái bị đổi
 function assertFullProgressOnlyWhenClosed(status, progress, prefix = '') {
-  if (progress !== 100 || status.yeu_cau_hoan_tat) return;
-  const names = db.prepare('SELECT ten FROM task_statuses WHERE yeu_cau_hoan_tat = 1 ORDER BY thu_tu, id').all().map((row) => row.ten);
+  if (progress !== 100 || status.la_hoan_thanh) return;
+  const names = db.prepare('SELECT ten FROM task_statuses WHERE la_hoan_thanh = 1 ORDER BY thu_tu, id').all().map((row) => row.ten);
   if (names.length === 0) return;
   throw invalid(`${prefix}Tiến độ 100% chỉ đặt được khi trạng thái là ${names.join(' / ')} (hiện là ${status.ten})`);
 }

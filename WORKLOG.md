@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — CANCELED cũng được tiến độ 100%
+
+- Luật 100% dựa trên cờ `la_hoan_thanh` (CLOSED, CANCELED) thay vì `yeu_cau_hoan_tat`: `db.js`, `TaskForm.jsx`, `EndOfDay.jsx`, mục 5.2 của `PROJECT_SPEC.md`. Thử DB tạm: CANCELED + 100% được; OPEN/IN PROGRESS + 100% vẫn bị chặn (thông báo "CLOSED / CANCELED"); CLOSED → REOPEN giữ 100% bị chặn.
+
 ## 2026-11-28 — Tiến độ 100% chỉ khi trạng thái CLOSED
 
 - `db.js`: `assertFullProgressOnlyWhenClosed` dùng ở `PUT /api/tasks/:id` và `POST /api/eod` (chỉ khi tiến độ/trạng thái bị đổi). `TaskForm.jsx` báo lỗi ngay dưới ô Tiến độ; `EndOfDay.jsx` chặn khi Lưu tất cả. Mục 5.2 của `PROJECT_SPEC.md`.
