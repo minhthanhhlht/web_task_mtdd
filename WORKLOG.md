@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Nút đổi sáng/tối dạng icon
+
+- `App.jsx`: thay ô chọn "Giao diện" bằng nút icon vuông (Sun khi đang tối, Moon khi đang sáng, có tooltip và `label`) cạnh tên tài khoản; bấm đổi sáng ↔ tối. Giá trị `system` vẫn đọc được từ localStorage nhưng giao diện chỉ còn nút đổi hai chế độ.
+
 ## 2026-11-28 — Thêm chế độ tối (dark mode)
 
 - `ThemeModeContext.jsx` (mới): `ThemeModeProvider` + `useThemeMode`, chế độ `light|dark|system` lưu `localStorage['themeMode']`, mặc định sáng; `main.jsx` dùng nó thay cho `<Theme mode="light">`.
