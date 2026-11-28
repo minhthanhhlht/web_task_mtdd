@@ -117,10 +117,11 @@ export default function DeletedTasks() {
       <ErrorBox message={error} onRetry={load} />
       <DataTable
         minWidth={1270}
+        isLoading={loading}
         data={data.items} columns={columns} idKey="id" density="compact" hasHover plugins={{ sort: sortPlugin }}
         emptyState={loading ? false : <EmptyState title={q ? 'Không có task đã xóa nào khớp.' : 'Chưa có task nào bị xóa.'} isCompact />}
       />
-      {loading && <Loading />}
+      {loading && data.items.length === 0 && <Loading />}
       <Pagination total={data.total} page={page} limit={limit} onChangePage={setPage} onChangeLimit={(v) => { changeLimit(v); setPage(1); }} />
     </div>
   );

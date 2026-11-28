@@ -89,7 +89,7 @@ export default function DataManager() {
   const columns = [
     { key: 'stt', header: '#', width: pixel(70), renderCell: (item) => items.indexOf(item) + 1 },
     { key: 'ten', header: 'Tên', width: proportional(1, { minWidth: 280 }), renderCell: (item) => <NameCell key={`${item.id}-${item.ten}`} item={item} onRename={(it, next) => run(() => updateDataItem(it.id, { ten: next }))} /> },
-    { key: 'so_task', header: 'Số task đang dùng', width: pixel(200), renderCell: (item) => <span className="tabular-nums">{item.so_task}</span> },
+    { key: 'so_task', header: 'Số task đang dùng', align: 'center', width: pixel(200), renderCell: (item) => <span className="tabular-nums">{item.so_task}</span> },
     {
       key: 'thao_tac', header: '', width: pixel(160),
       renderCell: (item) => {

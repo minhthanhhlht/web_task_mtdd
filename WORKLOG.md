@@ -2,6 +2,12 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Bảng đẹp và mượt hơn
+
+- `DataTable` đặt trong khung thẻ bo góc có viền; tiêu đề nền nhạt chữ phụ 13px; dòng thoáng hơn (padding dọc 10px, cao ~44px); hover chuyển màu mượt; dòng mới hiện dần (tắt khi người dùng chọn giảm chuyển động).
+- Đang tải lại (đổi trang/lọc/sắp xếp) thì làm mờ nhẹ bảng và giữ dữ liệu cũ, chỉ hiện vòng quay khi chưa có dữ liệu nào (hết nháy trống).
+- Các cột số/nhãn ngắn (Link Pwire, Checklist, Hoàn thành, Yêu cầu 100%, Số task) canh giữa.
+
 ## 2026-11-28 — Vòng quay Đang tải ở giữa
 
 - `Loading` canh giữa; `Loading fullPage` (chiếm giữa vùng nội dung) dùng khi chờ tải trang chi tiết task; màn chờ `AuthGate` canh giữa màn hình.

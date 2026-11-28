@@ -179,8 +179,8 @@ export default function EndOfDay() {
         </div>
       </div>
       <ErrorBox message={error} onRetry={load} />
-      <DataTable minWidth={1210} data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
-      {loading && <Loading />}
+      <DataTable isLoading={loading} minWidth={1210} data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
+      {loading && data.items.length === 0 && <Loading />}
       <Pagination total={data.total} page={page} limit={limit} onChangePage={setPage} onChangeLimit={(v) => { changeLimit(v); setPage(1); }} />
     </div>
   );

@@ -89,9 +89,9 @@ export default function StatusManager() {
       renderCell: (s) => <Selector label={`Màu của ${s.ten}`} isLabelHidden width={150} value={s.mau} options={COLOR_OPTIONS} onChange={(v) => v && change(s, { mau: v })} />,
     },
     { key: 'xem_truoc', header: 'Xem trước', width: proportional(1, { minWidth: 150 }), renderCell: (s) => <StatusBadge name={s.ten} color={s.mau} /> },
-    { key: 'la_hoan_thanh', header: 'Hoàn thành', width: pixel(120), renderCell: (s) => <CheckboxInput label={`${s.ten} là trạng thái hoàn thành`} isLabelHidden value={Boolean(s.la_hoan_thanh)} onChange={(checked) => change(s, { la_hoan_thanh: checked })} /> },
-    { key: 'yeu_cau_hoan_tat', header: 'Yêu cầu 100% + checklist', width: pixel(220), renderCell: (s) => <CheckboxInput label={`${s.ten} yêu cầu 100% và checklist`} isLabelHidden value={Boolean(s.yeu_cau_hoan_tat)} onChange={(checked) => change(s, { yeu_cau_hoan_tat: checked })} /> },
-    { key: 'so_task', header: 'Số task', width: pixel(100), renderCell: (s) => <span className="tabular-nums">{s.so_task}</span> },
+    { key: 'la_hoan_thanh', header: 'Hoàn thành', align: 'center', width: pixel(120), renderCell: (s) => <CheckboxInput label={`${s.ten} là trạng thái hoàn thành`} isLabelHidden value={Boolean(s.la_hoan_thanh)} onChange={(checked) => change(s, { la_hoan_thanh: checked })} /> },
+    { key: 'yeu_cau_hoan_tat', header: 'Yêu cầu 100% + checklist', align: 'center', width: pixel(220), renderCell: (s) => <CheckboxInput label={`${s.ten} yêu cầu 100% và checklist`} isLabelHidden value={Boolean(s.yeu_cau_hoan_tat)} onChange={(checked) => change(s, { yeu_cau_hoan_tat: checked })} /> },
+    { key: 'so_task', header: 'Số task', align: 'center', width: pixel(100), renderCell: (s) => <span className="tabular-nums">{s.so_task}</span> },
     {
       key: 'thao_tac', header: '', width: pixel(140),
       renderCell: (s) => {

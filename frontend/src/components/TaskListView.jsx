@@ -105,7 +105,7 @@ export default function TaskListView({ archived }) {
     ...(isAdmin ? [{ key: 'chu_so_huu', header: 'PIC', width: pixel(120), sortable: true, renderCell: (t) => (t.chu_so_huu ? <UserChip name={t.chu_so_huu} /> : '—') }] : []),
     { key: 'ma_task', header: 'Số Pwire', width: pixel(170), sortable: true, renderCell: (t) => <span className="whitespace-nowrap"><Link href={`/tasks/${t.id}`}>{t.ma_task}</Link></span> },
     { key: 'ten', header: 'Tên', width: proportional(1, { minWidth: 120 }), sortable: true, renderCell: (t) => <span className="block truncate" title={t.ten}>{t.ten}</span> },
-    { key: 'link_test_case', header: 'Link Pwire', width: pixel(110), sortable: true, renderCell: (t) => <PwireLink url={t.link_test_case} compact /> },
+    { key: 'link_test_case', header: 'Link Pwire', align: 'center', width: pixel(110), sortable: true, renderCell: (t) => <PwireLink url={t.link_test_case} compact /> },
     { key: 'nguoi_giao', header: 'Người giao', width: pixel(130), sortable: true, renderCell: (t) => <span className="block truncate" title={t.nguoi_giao}>{t.nguoi_giao}</span> },
     {
       key: 'deadline', header: 'Deadline', width: pixel(150), sortable: true,
@@ -114,7 +114,7 @@ export default function TaskListView({ archived }) {
     { key: 'tien_do', header: 'Tiến độ', width: pixel(150), sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
     { key: 'trang_thai', header: 'Trạng thái', width: pixel(190), sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
     {
-      key: 'checklist', header: 'Checklist', width: pixel(100), sortable: true,
+      key: 'checklist', header: 'Checklist', align: 'center', width: pixel(100), sortable: true,
       renderCell: (t) => <span className={`tabular-nums ${t.checklist_tong > 0 && t.checklist_da_xong === t.checklist_tong ? 'font-medium text-(--color-text-success)' : ''}`}>{t.checklist_da_xong}/{t.checklist_tong}</span>,
     },
     ...(archived ? [] : [{
@@ -163,6 +163,7 @@ export default function TaskListView({ archived }) {
       <ErrorBox message={error} onRetry={load} />
       <DataTable
         minWidth={isAdmin ? 1510 : 1390}
+        isLoading={loading}
         onRowClick={(task) => navigate(`/tasks/${task.id}`)}
         data={data.items}
         columns={columns}
@@ -172,7 +173,7 @@ export default function TaskListView({ archived }) {
         plugins={{ sort: sortPlugin }}
         emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />}
       />
-      {loading && <Loading />}
+      {loading && data.items.length === 0 && <Loading />}
       <Pagination total={data.total} page={page} limit={limit} onChangePage={setPage} onChangeLimit={(v) => { changeLimit(v); setPage(1); }} />
     </div>
   );

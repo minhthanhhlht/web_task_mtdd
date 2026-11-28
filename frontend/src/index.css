@@ -25,6 +25,27 @@
   .astryx-side-nav-item[data-selected]:not([data-selected="false"]) *:not(.astryx-badge, .astryx-badge *) { color: var(--color-text-accent); }
 }
 
+/* Bảng: tiêu đề nền nhạt chữ phụ, dòng thoáng hơn (cao ~44px), hover mượt, dòng mới hiện dần. */
+@layer components {
+  .astryx-table-header-cell {
+    background: var(--color-background-muted);
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    padding-block: 10px;
+    white-space: nowrap;
+  }
+  .astryx-table-cell { padding-block: 10px; }
+  .astryx-table-row { transition: background-color 0.15s ease; }
+  .astryx-table-body .astryx-table-row { animation: table-row-in 0.22s ease both; }
+  @keyframes table-row-in {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .astryx-table-body .astryx-table-row { animation: none; }
+  }
+}
+
 /* Màu chính (nút chính, liên kết, viền focus, mục đang chọn) đổi từ đen của theme neutral sang xanh dương.
    Đặt trong layer components (sau astryx-theme) nên thắng token của theme mà không phải sửa gói theme. */
 @layer components {

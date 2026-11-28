@@ -50,8 +50,8 @@ export default function TaskHistory({ taskId, reloadKey }) {
   return (
     <div className="flex flex-col gap-2">
       <ErrorBox message={error} onRetry={load} />
-      <DataTable minWidth={740} data={data.items} columns={columns} idKey="id" density="compact" emptyState={loading ? false : <EmptyState title="Chưa có thay đổi nào." isCompact />} />
-      {loading && <Loading />}
+      <DataTable isLoading={loading} minWidth={740} data={data.items} columns={columns} idKey="id" density="compact" emptyState={loading ? false : <EmptyState title="Chưa có thay đổi nào." isCompact />} />
+      {loading && data.items.length === 0 && <Loading />}
       <Pagination total={data.total} page={page} limit={limit} unit="thay đổi" onChangePage={setPage} onChangeLimit={(value) => { changeLimit(value); setPage(1); }} />
     </div>
   );
