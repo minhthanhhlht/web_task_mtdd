@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Toast ở góc trên bên phải
+
+- `Toast.jsx`: `LayerProvider toast={{ position: 'topEnd' }}` (trước là góc dưới phải theo mặc định Astryx).
+
 ## 2026-11-28 — Toast có màu theo loại
 
 - Toast mặc định của Astryx là nền đen/trắng đảo màu. `Toast.jsx` thêm icon và `data-toast-kind`; `index.css` (layer components) tô: thành công xanh lá, thông tin xanh dương, lỗi đỏ, chữ trắng. Thử trên bản chạy thử: thành công rgb(25,129,0), lỗi rgb(201,48,58), thông tin xanh dương.

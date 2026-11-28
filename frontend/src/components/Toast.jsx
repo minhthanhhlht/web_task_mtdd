@@ -6,7 +6,8 @@ import { useToast as useAstryxToast } from '@astryxdesign/core/Toast';
 import { CircleAlert, CircleCheck, Info } from 'lucide-react';
 
 export function ToastProvider({ children }) {
-  return <LayerProvider>{children}</LayerProvider>;
+  // Toast hiện ở góc trên bên phải
+  return <LayerProvider toast={{ position: 'topEnd' }}>{children}</LayerProvider>;
 }
 
 // Nội dung toast: icon + chữ; data-toast-kind để index.css tô màu riêng (Astryx chỉ có hai loại info/error nên thành công đi qua info)
