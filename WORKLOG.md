@@ -2,6 +2,12 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Thêm chế độ tối (dark mode)
+
+- `ThemeModeContext.jsx` (mới): `ThemeModeProvider` + `useThemeMode`, chế độ `light|dark|system` lưu `localStorage['themeMode']`, mặc định sáng; `main.jsx` dùng nó thay cho `<Theme mode="light">`.
+- `App.jsx`: ô chọn "Giao diện" (Sáng / Tối / Theo hệ thống, icon Sun/Moon/Monitor) ở chân menu bên.
+- Kiểm tra bản tối ở danh sách và chi tiết task: màu, bảng, nút, trình soạn ghi chú đều theo token. Cập nhật mục 7.1, 7.6 của `PROJECT_SPEC.md` và `RULES.md`.
+
 ## 2026-11-28 — Sửa huy hiệu số ở menu bên bị tô xanh
 
 - `index.css`: quy tắc tô màu chính cho mục menu đang chọn loại trừ `.astryx-badge`, nên số task chưa cập nhật giữ chữ trắng trên nền đỏ khi đang ở trang Cập nhật tiến độ.

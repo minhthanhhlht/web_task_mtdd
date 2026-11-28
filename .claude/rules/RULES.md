@@ -30,7 +30,8 @@
 - Mọi lời gọi API **MUST** hiển thị trạng thái đang tải và lỗi.
 - Cấm `window.confirm / prompt / alert`: dùng `useDialog` và `useToast`.
 - Cấm viết CSS component riêng. `frontend/src/index.css` chỉ có thứ tự `@layer` và các `@import` của Tailwind/Astryx (xem 7.6 của `PROJECT_SPEC.md`); `src/astryx-themes.js` do CLI sinh, không sửa tay.
-- Thứ tự providers trong `main.jsx`: `StrictMode > BrowserRouter > Theme > InternationalizationProvider > LinkProvider > ToastProvider > DialogProvider > AuthProvider > AuthGate > StatusProvider > App`; `index.css` import đầu tiên.
+- Thứ tự providers trong `main.jsx`: `StrictMode > BrowserRouter > ThemeModeProvider > InternationalizationProvider > LinkProvider > ToastProvider > DialogProvider > AuthProvider > AuthGate > StatusProvider > App`; `index.css` import đầu tiên.
+- Chế độ sáng/tối: chỉ đổi qua `ThemeModeProvider`/`useThemeMode`; mọi màu phải là token Astryx (không màu thô) để dark mode đúng.
 - Danh sách task: lọc/tìm/sắp xếp/đổi trang đều gọi API; đổi bộ lọc thì quay về trang 1.
 - Bảng dùng `DataTable` (bọc `Table` của Astryx, cuộn ngang trên màn hẹp). Sắp xếp phía backend qua `useTableSortable`.
 - Ô ngày giờ dùng `DateTimeInput` của Astryx (`hourFormat="24h"`, `weekStartsOn="mon"`, `presentation="popover"`). Giá trị vào/ra dạng `YYYY-MM-DDTHH:mm`; khi gửi API đổi `T` thành khoảng trắng.

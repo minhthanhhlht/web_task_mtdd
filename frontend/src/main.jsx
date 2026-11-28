@@ -6,20 +6,19 @@ import { BrowserRouter } from 'react-router-dom';
 import { InternationalizationProvider } from '@astryxdesign/core/i18n';
 import viVN from '@astryxdesign/core/locales/vi-VN.generated.js';
 import { LinkProvider } from '@astryxdesign/core/Link';
-import { Theme } from '@astryxdesign/core/theme';
 import App from './App.jsx';
-import { defaultThemeSlug, themes } from './astryx-themes.js';
 import AuthGate from './components/AuthGate.jsx';
 import { DialogProvider } from './components/DialogContext.jsx';
 import RouterLink from './components/RouterLink.jsx';
 import { StatusProvider } from './components/StatusContext.jsx';
+import { ThemeModeProvider } from './components/ThemeModeContext.jsx';
 import { ToastProvider } from './components/Toast.jsx';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      {/* Theme và ngôn ngữ của Astryx (nhãn nội bộ của component hiển thị tiếng Việt); Link dùng router của ứng dụng */}
-      <Theme theme={themes[defaultThemeSlug]} mode="light">
+      {/* Theme (sáng/tối/hệ thống) và ngôn ngữ của Astryx (nhãn nội bộ của component hiển thị tiếng Việt); Link dùng router của ứng dụng */}
+      <ThemeModeProvider>
         <InternationalizationProvider locale="vi-VN" messages={{ 'vi-VN': viVN }}>
           <LinkProvider component={RouterLink}>
             <ToastProvider>
@@ -34,7 +33,7 @@ createRoot(document.getElementById('root')).render(
             </ToastProvider>
           </LinkProvider>
         </InternationalizationProvider>
-      </Theme>
+      </ThemeModeProvider>
     </BrowserRouter>
   </StrictMode>,
 );

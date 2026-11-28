@@ -4,14 +4,16 @@ import { AppShell } from '@astryxdesign/core/AppShell';
 import { Badge } from '@astryxdesign/core/Badge';
 import { Button } from '@astryxdesign/core/Button';
 import { Icon } from '@astryxdesign/core/Icon';
+import { Selector } from '@astryxdesign/core/Selector';
 import { SideNav, SideNavHeading, SideNavItem } from '@astryxdesign/core/SideNav';
 import { Text } from '@astryxdesign/core/Text';
 import {
-  Archive, ChartColumn, CircleCheck, Database, Download, ListTodo, LogOut, Plus, Tag, Trash2, Users,
+  Archive, ChartColumn, CircleCheck, Database, Download, ListTodo, LogOut, Monitor, Moon, Plus, Sun, Tag, Trash2, Users,
 } from 'lucide-react';
 import { EXPORT_URL } from './api.js';
 import { useAuth } from './components/AuthContext.jsx';
 import RequireAdmin from './components/RequireAdmin.jsx';
+import { useThemeMode } from './components/ThemeModeContext.jsx';
 import UserChip from './components/UserChip.jsx';
 import Accounts from './pages/Accounts.jsx';
 import Archive_ from './pages/Archive.jsx';
@@ -43,6 +45,7 @@ export default function App() {
   const location = useLocation();
   const report = useReportSummary(location.pathname);
   const isAdmin = user.vai_tro === 'admin';
+  const { mode, setMode } = useThemeMode();
 
   const isSelected = (to, end) => (end ? location.pathname === to : location.pathname === to || location.pathname.startsWith(`${to}/`));
 
@@ -57,6 +60,11 @@ export default function App() {
             <UserChip name={user.ten_dang_nhap} />
             {isAdmin && <Badge variant="info" label="admin" />}
           </div>
+          <Selector
+            label="Giao diện" isLabelHidden variant="secondary" value={mode} width="100%" startIcon={<Icon icon={mode === 'dark' ? Moon : mode === 'system' ? Monitor : Sun} />}
+            options={[{ value: 'light', label: 'Giao diện sáng' }, { value: 'dark', label: 'Giao diện tối' }, { value: 'system', label: 'Theo hệ thống' }]}
+            onChange={(v) => v && setMode(v)}
+          />
           <Button label="Đăng xuất" icon={<Icon icon={LogOut} />} onClick={logout} width="100%" />
         </div>
       )}
