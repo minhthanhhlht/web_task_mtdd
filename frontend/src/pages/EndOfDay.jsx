@@ -9,7 +9,6 @@ import { NumberInput } from '@astryxdesign/core/NumberInput';
 import { Selector } from '@astryxdesign/core/Selector';
 import DataTable from '../components/DataTable.jsx';
 import { pixel, proportional } from '@astryxdesign/core/Table';
-import { Text } from '@astryxdesign/core/Text';
 import { TextArea } from '@astryxdesign/core/TextArea';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { listTasks, saveEod } from '../api.js';
@@ -113,27 +112,25 @@ export default function EndOfDay() {
   };
 
   const columns = [
+    { key: 'task', header: 'Task', width: proportional(2, { minWidth: 150 }), renderCell: (task) => <span className="block truncate font-semibold" title={task.ten}>{task.ten}</span> },
+    { key: 'ma_task', header: 'Số Pwire', width: pixel(140), renderCell: (task) => <span className="whitespace-nowrap">{task.ma_task}</span> },
     {
-      key: 'task', header: 'Task', width: proportional(1, { minWidth: 280 }),
+      key: 'cap_nhat', header: 'Cập nhật', width: pixel(250),
       renderCell: (task) => {
         const rs = getReportStatus(task, now);
         return (
-          <div className="flex min-w-56 flex-col gap-1 py-1">
-            <Text weight="semibold">{task.ten}</Text>
-            <Text type="supporting" color="secondary">{task.ma_task}</Text>
-            <span className="inline-flex flex-wrap items-center gap-2">
-              <Badge variant={REPORT_LEVEL_VARIANT[rs.level]} label={rs.label} />
-              {!rs.updatedToday && !edits[task.id] && <Button label="Không đổi" size="sm" isDisabled={saving} onClick={() => confirmOne(task)} />}
-            </span>
-          </div>
+          <span className="inline-flex items-center gap-2 whitespace-nowrap">
+            <Badge variant={REPORT_LEVEL_VARIANT[rs.level]} label={rs.label} />
+            {!rs.updatedToday && !edits[task.id] && <Button label="Không đổi" size="sm" isDisabled={saving} onClick={() => confirmOne(task)} />}
+          </span>
         );
       },
     },
     {
-      key: 'tien_do', header: 'Tiến độ (%)', width: pixel(150),
+      key: 'tien_do', header: 'Tiến độ (%)', width: pixel(120),
       renderCell: (task) => (
         <NumberInput
-          label={`Tiến độ của ${task.ten}`} isLabelHidden min={0} max={100} isIntegerOnly width={110}
+          label={`Tiến độ của ${task.ten}`} isLabelHidden min={0} max={100} isIntegerOnly width={100}
           value={(edits[task.id] ?? task).tien_do}
           onChange={(v) => edit(task, { tien_do: v })}
           status={errors[task.id] ? { type: 'error', message: errors[task.id], } : undefined}
@@ -141,10 +138,10 @@ export default function EndOfDay() {
       ),
     },
     {
-      key: 'trang_thai', header: 'Trạng thái', width: pixel(240),
+      key: 'trang_thai', header: 'Trạng thái', width: pixel(200),
       renderCell: (task) => (
         <Selector
-          label={`Trạng thái của ${task.ten}`} isLabelHidden width={200}
+          label={`Trạng thái của ${task.ten}`} isLabelHidden width={180}
           value={(edits[task.id] ?? task).trang_thai}
           options={statuses.map((s) => ({ value: s.ten, label: s.ten }))}
           onChange={(v) => edit(task, { trang_thai: v ?? task.trang_thai })}
@@ -152,9 +149,9 @@ export default function EndOfDay() {
       ),
     },
     {
-      key: 'ghi_chu', header: 'Ghi chú', width: proportional(1, { minWidth: 260 }),
+      key: 'ghi_chu', header: 'Ghi chú', width: proportional(2, { minWidth: 150 }),
       renderCell: (task) => (
-        <div className="min-w-64" title={task.ghi_chu_rich ? 'Ghi chú có định dạng hoặc ảnh: sửa ở trang chi tiết task' : undefined}>
+        <div title={task.ghi_chu_rich ? 'Ghi chú có định dạng hoặc ảnh: sửa ở trang chi tiết task' : undefined}>
           <TextArea
             label={`Ghi chú của ${task.ten}`} isLabelHidden rows={1}
             value={(edits[task.id] ?? task).ghi_chu}
@@ -182,7 +179,7 @@ export default function EndOfDay() {
         </div>
       </div>
       <ErrorBox message={error} onRetry={load} />
-      <DataTable minWidth={930} data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
+      <DataTable minWidth={1010} data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
       {loading && <Loading />}
       <Pagination total={data.total} page={page} limit={limit} onChangePage={setPage} onChangeLimit={(v) => { changeLimit(v); setPage(1); }} />
     </div>

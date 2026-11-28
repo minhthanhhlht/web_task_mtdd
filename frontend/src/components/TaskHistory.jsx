@@ -44,7 +44,7 @@ export default function TaskHistory({ taskId, reloadKey }) {
       key: 'loai', header: 'Nhóm', width: pixel(110),
       renderCell: (i) => { const [label, variant] = TYPE_BADGE[i.loai] ?? TYPE_BADGE.task; return <Badge variant={variant} label={label} />; },
     },
-    { key: 'mo_ta', header: 'Nội dung thay đổi', width: proportional(1, { minWidth: 240 }), renderCell: (i) => <span className="break-words">{i.mo_ta}</span> },
+    { key: 'mo_ta', header: 'Nội dung thay đổi', width: proportional(1, { minWidth: 240 }), renderCell: (i) => <span className="block truncate" title={i.mo_ta}>{i.mo_ta}</span> },
   ], []);
 
   return (

@@ -125,7 +125,7 @@ export default function StatusManager() {
       </Card>
       <ErrorBox message={error} onRetry={reload} />
       {loading && <Loading />}
-      <DataTable minWidth={1090} data={pageItems} columns={columns} idKey="id" density="compact" />
+      <DataTable minWidth={1130} data={pageItems} columns={columns} idKey="id" density="compact" />
       <Pagination total={statuses.length} page={page} limit={limit} unit="trạng thái" onChangePage={setPage} onChangeLimit={(v) => { setLimit(v); setPage(1); }} />
     </div>
   );

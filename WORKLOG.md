@@ -2,6 +2,11 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Bảng vừa khít, mỗi ô một dòng, PIC hiện tên
+
+- `DataTable`: khung bọc `-mx-4 px-4` bù phần Table Astryx tràn 16px mỗi bên (nguyên nhân thanh cuộn ngang thừa dù bảng đủ chỗ); `textOverflow="truncate"` nên mỗi ô một dòng, chữ dài bị cắt bằng …
+- Danh sách task: PIC hiện tên, cột Cập nhật gộp nhãn + nút Không đổi một dòng; độ rộng cột chỉnh theo kiểu dữ liệu. Task đã xóa, trạng thái, lịch sử cũng chỉnh cột. Cập nhật tiến độ: tách Task / Số Pwire / Cập nhật thành các cột một dòng.
+
 ## 2026-11-28 — Căn thẳng hàng các nút/ô trong form và thanh công cụ
 
 - Form thêm trạng thái và thêm tài khoản: ô tick, nút, "Xem trước" bọc `h-8 flex items-center` để thẳng hàng với tâm ô nhập (trước canh đáy nên lệch). Thanh công cụ danh sách, cập nhật tiến độ, checklist, data đổi `items-end` → `items-center`.
