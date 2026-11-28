@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Màu chính sang xanh dương
+
+- `index.css`: ghi đè token accent của theme neutral (#0064E0) trong layer components; theme vẫn là neutral. Cập nhật mục 7.6 của `PROJECT_SPEC.md`.
+
 ## 2026-11-28 — Chuyển toàn bộ giao diện sang Astryx
 
 - Thay evondevKit + component tự viết bằng Astryx (`@astryxdesign/core` 0.7.17, theme neutral, ngôn ngữ vi-VN, MIT). Giữ Tailwind cho bố cục qua cầu nối token. Icon `lucide-react`.
