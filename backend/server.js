@@ -8,6 +8,7 @@ import {
   assertTaskAccess, authRouter, enforcePasswordChange, enforceRoles, ensureDefaultAdmin, getOwnerScope, handle,
   requireLogin, usersRouter,
 } from './auth.js';
+import { backupPath, createBackup, deleteBackup, listBackups } from './backups.js';
 import { noteToPlainText } from './noteHtml.js';
 import { seedDevIfEmpty } from './seed.js';
 
@@ -172,6 +173,26 @@ app.post('/api/deleted-tasks/:id/restore', handle((req, res) => {
 
 app.delete('/api/deleted-tasks/:id', handle((req, res) => {
   store.purgeTask(parseId(req.params.id));
+  res.status(204).end();
+}));
+
+// ===== Sao lưu database (chỉ admin, chặn ở enforceRoles) =====
+
+app.get('/api/backups', handle((req, res) => {
+  res.json({ items: listBackups() });
+}));
+
+app.post('/api/backups', handle(async (req, res) => {
+  res.status(201).json(await createBackup());
+}));
+
+// Tải file sao lưu về máy (Content-Disposition: attachment)
+app.get('/api/backups/:name', handle((req, res) => {
+  res.download(backupPath(req.params.name), req.params.name);
+}));
+
+app.delete('/api/backups/:name', handle((req, res) => {
+  deleteBackup(req.params.name);
   res.status(204).end();
 }));
 

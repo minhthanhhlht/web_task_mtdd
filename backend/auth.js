@@ -148,6 +148,7 @@ const WRITE = ['POST', 'PUT', 'DELETE'];
 const ADMIN_ONLY_RULES = [
   [['PUT'], /^\/tasks\/\d+\/owner$/],
   [null, /^\/deleted-tasks(\/|$)/],
+  [null, /^\/backups(\/|$)/],
   [WRITE, /^\/statuses(\/|$)/],
   [WRITE, /^\/data-items(\/|$)/],
   [['PUT'], /^\/checklist-templates$/],

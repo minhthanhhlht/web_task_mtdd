@@ -7,7 +7,7 @@ import { Icon } from '@astryxdesign/core/Icon';
 import { SideNav, SideNavHeading, SideNavItem } from '@astryxdesign/core/SideNav';
 import { Text } from '@astryxdesign/core/Text';
 import {
-  Archive, ChartColumn, CircleCheck, Database, Download, ListTodo, LogOut, Moon, Plus, Sun, Tag, Trash2, Users,
+  Archive, ChartColumn, CircleCheck, Database, Download, ListTodo, LogOut, Moon, Plus, Settings, Sun, Tag, Trash2, Users,
 } from 'lucide-react';
 import { EXPORT_URL } from './api.js';
 import { useAuth } from './components/AuthContext.jsx';
@@ -17,6 +17,7 @@ import UserChip from './components/UserChip.jsx';
 import Accounts from './pages/Accounts.jsx';
 import Archive_ from './pages/Archive.jsx';
 import Checklist from './pages/Checklist.jsx';
+import SettingsPage from './pages/Settings.jsx';
 import DataManager from './pages/DataManager.jsx';
 import DeletedTasks from './pages/DeletedTasks.jsx';
 import EndOfDay from './pages/EndOfDay.jsx';
@@ -36,6 +37,7 @@ const MENU = [
   ['/quan-ly-data', 'Quản lý data', Database, true],
   ['/archive', 'Đã hoàn thành', Archive, false],
   ['/da-xoa', 'Task đã xóa', Trash2, true],
+  ['/cai-dat', 'Cài đặt', Settings, true],
   ['/tai-khoan', 'Tài khoản', Users, false],
 ];
 
@@ -96,6 +98,7 @@ export default function App() {
         <Route path="/quan-ly-data" element={<RequireAdmin><DataManager /></RequireAdmin>} />
         <Route path="/archive" element={<Archive_ />} />
         <Route path="/da-xoa" element={<RequireAdmin><DeletedTasks /></RequireAdmin>} />
+        <Route path="/cai-dat" element={<RequireAdmin><SettingsPage /></RequireAdmin>} />
         <Route path="/tai-khoan" element={<Accounts />} />
         <Route path="*" element={<Text>Không tìm thấy trang.</Text>} />
       </Routes>

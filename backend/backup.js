@@ -1,15 +1,7 @@
 // Sao lưu database ra backups/tasks_<YYYY-MM-DD_HHmm>.db (mỗi lần chạy một file, chạy nhiều lần trong ngày không ghi đè nhau).
-import fs from 'node:fs';
+// Dùng cho lệnh tay và lịch tự động (Coolify Scheduled Tasks); logic nằm ở backups.js.
 import path from 'node:path';
-import { db, DB_FILE } from './db.js';
+import { BACKUP_DIR, createBackup } from './backups.js';
 
-// Thư mục sao lưu nằm cạnh file database (volume lưu bền khi chạy Docker)
-const dir = path.join(path.dirname(DB_FILE), 'backups');
-fs.mkdirSync(dir, { recursive: true });
-const now = new Date();
-const stamp = `${now.toLocaleDateString('sv-SE')}_${now.toLocaleTimeString('sv-SE').slice(0, 5).replace(':', '')}`;
-const target = path.join(dir, `tasks_${stamp}.db`);
-
-// Dùng API backup của better-sqlite3 để bản sao nhất quán
-await db.backup(target);
-console.log(`Da sao luu vao ${target}`);
+const info = await createBackup();
+console.log(`Da sao luu vao ${path.join(BACKUP_DIR, info.ten)}`);

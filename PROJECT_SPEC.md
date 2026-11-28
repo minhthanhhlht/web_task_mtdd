@@ -54,14 +54,14 @@ dashboard_personal/
   backend/seed.js  backend/seed-data.example.json  backend/seed-data.json   (seed-data.json chứa danh sách Dev thật + mẫu checklist riêng, KHÔNG commit)
   .claude/rules/RULES.md   .claude/settings.json
   backend/
-    package.json  schema.sql  db.js  server.js  auth.js  noteHtml.js  backup.js  create-user.js
+    package.json  schema.sql  db.js  server.js  auth.js  noteHtml.js  backups.js  backup.js  create-user.js
     tasks.db            (tự tạo, không commit)    backups/ (không commit)
   frontend/
     package.json  vite.config.js  index.html
     src/
       main.jsx  App.jsx  index.css  astryx-themes.js (sinh bởi `astryx theme add`)  api.js  constants.js  reportStatus.js  noteHtml.js
       useDataItems.js  usePageSize.js  useReportSummary.js
-      pages/        TaskList TaskNew TaskDetail EndOfDay Archive Checklist StatusManager DataManager DeletedTasks Accounts Login ForceChangePassword
+      pages/        TaskList TaskNew TaskDetail EndOfDay Archive Checklist StatusManager DataManager DeletedTasks Settings Accounts Login ForceChangePassword
       components/   ApplyTemplatePanel AuthContext AuthGate ChecklistBox ChecklistOverview ChecklistTemplateEditor
                     DataTable DialogContext IssueForm IssueRow Pagination PasswordField PicTransfer ProgressBar
                     PwireLink RequireAdmin RichNoteEditor RouterLink RowMenu SelectAllCheckbox StateMessage StatusBadge
@@ -298,6 +298,7 @@ Khi chuyển task sang trạng thái có `yeu_cau_hoan_tat = 1` (mặc định `
 - `ADMIN_ONLY_RULES` (một bảng duy nhất trong `auth.js`, `enforceRoles` trả 403 `Bạn không có quyền thực hiện thao tác này (cần quản trị viên)`):
   - `PUT /tasks/:id/owner`
   - mọi method `/deleted-tasks…`
+  - mọi method `/backups…`
   - `POST|PUT|DELETE /statuses…`
   - `POST|PUT|DELETE /data-items…`
   - `PUT /checklist-templates` và `POST /checklist-templates/apply`
@@ -399,6 +400,14 @@ Quy tắc: tên đăng nhập `/^[A-Za-z0-9._-]{3,50}$/` (lỗi: `Tên đăng nh
 - `POST /api/deleted-tasks/:id/restore` — đặt `xoa_luc`/`nguoi_xoa` về NULL, cập nhật `cap_nhat_luc`, ghi nhật ký `Khôi phục task`, trả task. Task không tồn tại hoặc chưa xóa → 404 `Không tìm thấy task đã xóa`.
 - `DELETE /api/deleted-tasks/:id` — **xóa vĩnh viễn** (`DELETE FROM tasks`, checklist/vấn đề/tiến độ/nhật ký xóa theo `ON DELETE CASCADE`), 204; chỉ áp dụng cho task đã xóa mềm, task còn hoạt động hoặc không tồn tại → 404 `Không tìm thấy task đã xóa` (muốn xóa vĩnh viễn phải xóa mềm trước).
 
+### 6.10 Sao lưu database (chỉ admin; `/api/backups…` nằm trong `ADMIN_ONLY_RULES`)
+
+Logic ở `backend/backups.js` (dùng chung với lệnh `backup.js`). Thư mục `backups/` nằm cạnh file database (Docker: `/data/backups`); tên file hợp lệ `tasks_YYYY-MM-DD_HHmm.db` (chấp nhận cả `tasks_YYYY-MM-DD.db` cũ), tên khác hoặc chứa ký tự đường dẫn → 404 `Không tìm thấy bản sao lưu`.
+- `GET /api/backups` → `{ items: [{ ten, kich_thuoc (byte), tao_luc ('YYYY-MM-DD HH:mm:ss') }] }`, mới nhất trước.
+- `POST /api/backups` → 201 + thông tin file vừa tạo (dùng `db.backup`, nhất quán khi đang chạy; tạo trong cùng một phút thì ghi đè).
+- `GET /api/backups/:ten` → tải file (`Content-Disposition: attachment`).
+- `DELETE /api/backups/:ten` → 204.
+
 ### 6.7 Nhật ký thay đổi (`task_history`)
 
 Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị thực sự đổi. Mỗi dòng ghi thêm **người thay đổi** = tên đăng nhập của người gọi API (middleware đặt `AsyncLocalStorage` sau `enforceRoles`, `addHistory` và các câu `INSERT … SELECT` đổi tên trạng thái/Dev đọc từ đó); lệnh chạy tay (seed, backup) thì `NULL`. Là bản chụp lúc ghi, đổi hay xóa tài khoản sau đó không đổi dòng cũ. `ALTER TABLE` thêm cột cho DB cũ (dòng cũ `NULL`, giao diện hiện `—`). `loai`: `task` (thông tin), `tien_do`, `checklist`, `van_de`.
@@ -477,6 +486,7 @@ Ghi **trong cùng transaction** với thay đổi; chỉ ghi khi giá trị th�
 | `/quan-ly-data` | Quản lý data | database | **chỉ admin** |
 | `/archive` | Đã hoàn thành | archive | |
 | `/da-xoa` | Task đã xóa | trash | **chỉ admin** |
+| `/cai-dat` | Cài đặt | settings | **chỉ admin** (sao lưu dữ liệu) |
 | `/tai-khoan` | Tài khoản | users | |
 
 Cuối sidebar: nút "Xuất CSV" (icon download, thẻ `<a href=EXPORT_URL>`), tên tài khoản + "admin" nếu là admin, nút "Đăng xuất". Thanh trên có nút `☰` ẩn/hiện sidebar. **Responsive:** dưới 1024px (`matchMedia('(max-width: 1023px)')`) sidebar mặc định ẩn, khi mở thì `fixed inset-y-0 z-30 shadow-xl` có nền mờ `bg-black/30` (bấm nền hoặc chọn mục thì đóng); qua ngưỡng thì tự ẩn/hiện. Vùng nội dung `main` `px-6 py-6`, **full chiều ngang cho mọi trang** (không `max-w`). Route lạ → "Không tìm thấy trang."; trang admin bọc `RequireAdmin` (user thường thấy thông báo không có quyền).
@@ -504,6 +514,8 @@ Màn hình hẹp (`< xl`) xếp dọc theo thứ tự ①②③④. Mọi thao t
 **Quản lý trạng thái `/trang-thai`** (admin): form thêm (tên, select màu, checkbox `Hoàn thành`, checkbox `Yêu cầu 100% + checklist`, nhãn "Xem trước") và bảng `# | Tên trạng thái | Màu | (xem trước) | Hoàn thành | Yêu cầu 100% + checklist | Số task | thao tác`: sửa tên (rời ô/Enter lưu, Esc hủy; đổi tên trạng thái đang có task dùng → `dialog.confirm` nêu số task), đổi màu, bật/tắt hai cờ, ↑ ↓, Xóa (nút khóa + chú thích số task nếu đang dùng; `dialog.confirm` danger). Phân trang phía trình duyệt (API trả hết); ↑ ↓ tính trên toàn danh sách. Sau mỗi thay đổi gọi `StatusContext.reload()`.
 
 **Quản lý data `/quan-ly-data`** (admin): tab theo nhóm (hiện có `Dev`); thêm một mục, "Thêm nhiều" (textarea mỗi dòng một tên → bulk, báo `added/skipped`), bảng `# | Tên | số task đang dùng | thao tác` (đổi tên rời ô/Enter, ↑ ↓, Xóa có xác nhận; khóa nút nếu đang được task dùng), phân trang phía trình duyệt.
+
+**Cài đặt `/cai-dat`** (admin, `RequireAdmin`; `Settings.jsx`): khối "Sao lưu dữ liệu" có nút **Tạo bản sao lưu ngay** (`POST /api/backups`, toast `Đã tạo bản sao lưu <tên>`) và bảng `Tên file | Tạo lúc | Dung lượng | (Tải về, menu … → Xóa)`; **Tải về** là liên kết thường `<a href="/api/backups/<tên>">` (`RouterLink` để `/api/` đi thẳng, không qua router); Xóa hỏi `dialog.confirm` kiểu `danger`. Rỗng: "Chưa có bản sao lưu nào.".
 
 **Tài khoản `/tai-khoan`:** mọi người: khối "Đổi mật khẩu của tôi" (mật khẩu hiện tại, mới, nhập lại; `max-w-xl`). **Admin** thêm khối "Quản lý tài khoản": form thêm (tên, mật khẩu **hiện chữ rõ** vì admin cần đọc để đưa cho người dùng, select vai trò) + bảng `Tên đăng nhập | Vai trò (select đổi ngay) | Tạo lúc | Số phiên | thao tác` với **Đặt lại mật khẩu** (`dialog.prompt` mật khẩu ẩn, ≥ 8 ký tự, báo lỗi trong hộp) và **Xóa** (`dialog.confirm` danger; khóa với chính mình).
 

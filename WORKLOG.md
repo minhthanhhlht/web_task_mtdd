@@ -2,6 +2,12 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Trang Cài đặt: tạo, xem, tải, xóa bản sao lưu
+
+- Backend: `backups.js` (tạo/liệt kê/đường dẫn/xóa, chặn tên file có đường dẫn), API `/api/backups` (GET, POST, GET /:ten tải về, DELETE /:ten), thêm vào `ADMIN_ONLY_RULES`; `backup.js` dùng lại `createBackup`.
+- Frontend: trang `/cai-dat` (`Settings.jsx`, admin), menu Cài đặt, `RouterLink` cho `/api/` đi thẳng thẻ `<a>`.
+- Thử bằng DB tạm 12/12: tạo, liệt kê, tải về đúng file SQLite có header attachment, tên chứa `../` bị 404, user thường bị 403 ở cả bốn API, admin xóa được.
+
 ## 2026-11-28 — Backup nhiều lần trong ngày
 
 - `backend/backup.js`: tên file `tasks_<YYYY-MM-DD_HHmm>.db` (trước đây theo ngày nên lần sau ghi đè lần trước). Thử chạy với DB tạm: ra file `tasks_2026-11-28_2220.db`. Cập nhật mục 9 của `PROJECT_SPEC.md` kèm cách đặt lịch trên Coolify (12:30 và 17:30).

@@ -86,3 +86,9 @@ export const listUsers = () => request('GET', '/api/users');
 export const createUser = (body) => request('POST', '/api/users', body);
 export const updateUser = (id, body) => request('PUT', `/api/users/${id}`, body);
 export const deleteUser = (id) => request('DELETE', `/api/users/${id}`);
+
+// Sao lưu database (chỉ admin): danh sách, tạo mới, xóa; tải về bằng liên kết backupDownloadUrl
+export const listBackups = () => request('GET', '/api/backups');
+export const createBackup = () => request('POST', '/api/backups');
+export const deleteBackup = (name) => request('DELETE', `/api/backups/${encodeURIComponent(name)}`);
+export const backupDownloadUrl = (name) => `/api/backups/${encodeURIComponent(name)}`;
