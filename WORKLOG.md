@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Làm đẹp menu bên
+
+- `index.css` (layer components): mục menu cao 40px, cách nhau 4px (trước dính sát nên nền khi rê chuột chạm nhau), padding ngang 12px, mục đang chọn tô nhạt màu chính (12%) chữ xanh đậm, tiêu đề menu thẳng hàng với các mục.
+
 ## 2026-11-28 — Rà soát và sửa lỗi bố cục bảng sau khi chuyển Astryx
 
 - Bảng của Astryx chia đều cột nên chữ bị cắt (Deadline, Số Pwire xuống dòng, cột Cập nhật ra ngoài màn): đặt độ rộng cột (`pixel`/`proportional`) cho danh sách task, task đã xóa, cập nhật tiến độ, trạng thái, data, tài khoản, lịch sử. Danh sách: PIC chỉ hiện ảnh đại diện (tên ở tooltip, cột 72px để tiêu đề không xuống dòng), Deadline bỏ giây, nhãn Cập nhật và nút Không đổi xếp dọc.

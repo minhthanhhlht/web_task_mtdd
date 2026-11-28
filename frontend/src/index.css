@@ -9,6 +9,21 @@
 @import "@astryxdesign/core/tailwind-theme.css";
 @import "tailwindcss/utilities.css" layer(utilities);
 
+/* Menu bên: mục cao 40px, cách nhau 4px (trước đây dính sát nên màu nền khi rê chuột chạm nhau), mục đang chọn tô nhạt màu chính.
+   Đặt trong layer components nên thắng kiểu dựng sẵn của Astryx. */
+@layer components {
+  .astryx-side-nav > div:has(.astryx-side-nav-item) { padding: 8px 12px; }
+  .astryx-side-nav div:has(> .astryx-side-nav-item) { margin-block: 2px; }
+  .astryx-side-nav-heading { padding-inline: 12px; }
+  .astryx-side-nav-item { height: 40px; padding-inline: 12px; border-radius: 12px; gap: 12px; font-weight: 500; }
+  .astryx-side-nav-item[data-selected]:not([data-selected="false"]) {
+    background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+    color: var(--color-text-accent);
+    font-weight: 600;
+  }
+  .astryx-side-nav-item[data-selected]:not([data-selected="false"]) * { color: var(--color-text-accent); }
+}
+
 /* Màu chính (nút chính, liên kết, viền focus, mục đang chọn) đổi từ đen của theme neutral sang xanh dương.
    Đặt trong layer components (sau astryx-theme) nên thắng token của theme mà không phải sửa gói theme. */
 @layer components {
