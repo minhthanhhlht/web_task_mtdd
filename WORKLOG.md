@@ -2,6 +2,10 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Toast có màu theo loại
+
+- Toast mặc định của Astryx là nền đen/trắng đảo màu. `Toast.jsx` thêm icon và `data-toast-kind`; `index.css` (layer components) tô: thành công xanh lá, thông tin xanh dương, lỗi đỏ, chữ trắng. Thử trên bản chạy thử: thành công rgb(25,129,0), lỗi rgb(201,48,58), thông tin xanh dương.
+
 ## 2026-11-28 — Sửa trang Cài đặt: bỏ thẻ lồng nhau
 
 - `Settings.jsx`: bảng sao lưu không còn nằm trong `Card` (DataTable đã là khung thẻ nên bị hai lớp khung, tiêu đề xám lệch). Tiêu đề, mô tả, nút đứng trên bảng.

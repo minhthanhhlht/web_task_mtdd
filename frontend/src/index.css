@@ -25,6 +25,14 @@
   .astryx-side-nav-item[data-selected]:not([data-selected="false"]) *:not(.astryx-badge, .astryx-badge *) { color: var(--color-text-accent); }
 }
 
+/* Thông báo (toast): thành công nền xanh lá, thông tin nền xanh dương, lỗi nền đỏ (Astryx mặc định là nền đen/trắng đảo màu). */
+@layer components {
+  .astryx-toast[data-type="info"] { background: var(--color-info); color: var(--color-on-info); }
+  .astryx-toast[data-type="info"]:has([data-toast-kind="success"]) { background: var(--color-success); color: var(--color-on-success); }
+  .astryx-toast[data-type="error"] { background: var(--color-error); color: var(--color-on-error); }
+  .astryx-toast :is(button, svg, span, div, p) { color: inherit; }
+}
+
 /* Bảng: tiêu đề nền nhạt chữ phụ, dòng thoáng hơn (cao ~44px), hover mượt, dòng mới hiện dần. */
 @layer components {
   .astryx-table-header-cell {
