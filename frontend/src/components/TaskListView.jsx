@@ -8,7 +8,7 @@ import { EmptyState } from '@astryxdesign/core/EmptyState';
 import { Heading } from '@astryxdesign/core/Heading';
 import { Link } from '@astryxdesign/core/Link';
 import { Selector } from '@astryxdesign/core/Selector';
-import { useTableSortable } from '@astryxdesign/core/Table';
+import { pixel, proportional, useTableSortable } from '@astryxdesign/core/Table';
 import DataTable from './DataTable.jsx';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { listTasks, saveEod } from '../api.js';
@@ -100,27 +100,27 @@ export default function TaskListView({ archived }) {
   }, [toast]);
 
   const columns = useMemo(() => [
-    ...(isAdmin ? [{ key: 'chu_so_huu', header: 'PIC', sortable: true, renderCell: (t) => (t.chu_so_huu ? <UserChip name={t.chu_so_huu} /> : '—') }] : []),
-    { key: 'ma_task', header: 'Số Pwire', sortable: true, renderCell: (t) => <Link href={`/tasks/${t.id}`}>{t.ma_task}</Link> },
-    { key: 'ten', header: 'Tên', sortable: true, renderCell: (t) => <span className="inline-block max-w-56 truncate align-bottom" title={t.ten}>{t.ten}</span> },
-    { key: 'link_test_case', header: 'Link Pwire', sortable: true, renderCell: (t) => <PwireLink url={t.link_test_case} compact /> },
-    { key: 'nguoi_giao', header: 'Người giao', sortable: true, renderCell: (t) => <span className="inline-block max-w-24 truncate align-bottom" title={t.nguoi_giao}>{t.nguoi_giao}</span> },
+    ...(isAdmin ? [{ key: 'chu_so_huu', header: 'PIC', width: pixel(52), sortable: true, renderCell: (t) => (t.chu_so_huu ? <span title={t.chu_so_huu}><UserChip name={t.chu_so_huu} showName={false} /></span> : '—') }] : []),
+    { key: 'ma_task', header: 'Số Pwire', width: pixel(138), sortable: true, renderCell: (t) => <span className="whitespace-nowrap"><Link href={`/tasks/${t.id}`}>{t.ma_task}</Link></span> },
+    { key: 'ten', header: 'Tên', width: proportional(1, { minWidth: 130 }), sortable: true, renderCell: (t) => <span className="block truncate" title={t.ten}>{t.ten}</span> },
+    { key: 'link_test_case', header: 'Link Pwire', width: pixel(82), sortable: true, renderCell: (t) => <PwireLink url={t.link_test_case} compact /> },
+    { key: 'nguoi_giao', header: 'Người giao', width: pixel(100), sortable: true, renderCell: (t) => <span className="block truncate" title={t.nguoi_giao}>{t.nguoi_giao}</span> },
     {
-      key: 'deadline', header: 'Deadline', sortable: true,
-      renderCell: (t) => <span className={`whitespace-nowrap tabular-nums ${archived ? '' : deadlineTone(t.deadline)}`} title={t.deadline ?? undefined}>{t.deadline ? shortDateTime(t.deadline) : '—'}</span>,
+      key: 'deadline', header: 'Deadline', width: pixel(132), sortable: true,
+      renderCell: (t) => <span className={`whitespace-nowrap tabular-nums ${archived ? '' : deadlineTone(t.deadline)}`} title={t.deadline ?? undefined}>{t.deadline ? shortDateTime(t.deadline).slice(0, 16) : '—'}</span>,
     },
-    { key: 'tien_do', header: 'Tiến độ', sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
-    { key: 'trang_thai', header: 'Trạng thái', sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
+    { key: 'tien_do', header: 'Tiến độ', width: pixel(112), sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
+    { key: 'trang_thai', header: 'Trạng thái', width: pixel(140), sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
     {
-      key: 'checklist', header: 'Checklist', sortable: true,
+      key: 'checklist', header: 'Checklist', width: pixel(96), sortable: true,
       renderCell: (t) => <span className={`tabular-nums ${t.checklist_tong > 0 && t.checklist_da_xong === t.checklist_tong ? 'font-medium text-(--color-text-success)' : ''}`}>{t.checklist_da_xong}/{t.checklist_tong}</span>,
     },
     ...(archived ? [] : [{
-      key: 'cap_nhat', header: 'Cập nhật', sortable: true,
+      key: 'cap_nhat', header: 'Cập nhật', width: pixel(160), sortable: true,
       renderCell: (t) => {
         const rs = getReportStatus(t, report.now);
         return (
-          <span className="inline-flex items-center gap-2 whitespace-nowrap">
+          <span className="inline-flex flex-col items-start gap-1 whitespace-nowrap">
             <Badge variant={REPORT_LEVEL_VARIANT[rs.level]} label={rs.updatedToday ? shortDateTime(rs.updatedAtFull ?? t.ngay_cap_nhat_cuoi) : rs.level === 'pending' ? 'Chưa cập nhật' : rs.label} />
             {!rs.updatedToday && <Button label="Không đổi" size="sm" onClick={() => confirmUnchanged(t)} />}
           </span>
@@ -160,7 +160,7 @@ export default function TaskListView({ archived }) {
 
       <ErrorBox message={error} onRetry={load} />
       <DataTable
-        minWidth={1100}
+        minWidth={isAdmin ? 1142 : 1090}
         data={data.items}
         columns={columns}
         idKey="id"

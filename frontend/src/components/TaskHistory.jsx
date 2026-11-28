@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '@astryxdesign/core/Badge';
 import { EmptyState } from '@astryxdesign/core/EmptyState';
+import { pixel, proportional } from '@astryxdesign/core/Table';
 import { getTaskHistory } from '../api.js';
 import DataTable from './DataTable.jsx';
 import { formatDateTime } from '../constants.js';
@@ -37,19 +38,19 @@ export default function TaskHistory({ taskId, reloadKey }) {
   useEffect(load, [taskId, page, limit, reloadKey]);
 
   const columns = useMemo(() => [
-    { key: 'thoi_gian', header: 'Thời gian', renderCell: (i) => <span className="whitespace-nowrap tabular-nums">{formatDateTime(i.thoi_gian)}</span> },
-    { key: 'nguoi_thay_doi', header: 'Người thay đổi', renderCell: (i) => (i.nguoi_thay_doi ? <UserChip name={i.nguoi_thay_doi} className="max-w-32" /> : '—') },
+    { key: 'thoi_gian', header: 'Thời gian', width: pixel(170), renderCell: (i) => <span className="whitespace-nowrap tabular-nums">{formatDateTime(i.thoi_gian)}</span> },
+    { key: 'nguoi_thay_doi', header: 'Người thay đổi', width: pixel(150), renderCell: (i) => (i.nguoi_thay_doi ? <UserChip name={i.nguoi_thay_doi} className="max-w-32" /> : '—') },
     {
-      key: 'loai', header: 'Nhóm',
+      key: 'loai', header: 'Nhóm', width: pixel(110),
       renderCell: (i) => { const [label, variant] = TYPE_BADGE[i.loai] ?? TYPE_BADGE.task; return <Badge variant={variant} label={label} />; },
     },
-    { key: 'mo_ta', header: 'Nội dung thay đổi', renderCell: (i) => <span className="break-words">{i.mo_ta}</span> },
+    { key: 'mo_ta', header: 'Nội dung thay đổi', width: proportional(1, { minWidth: 240 }), renderCell: (i) => <span className="break-words">{i.mo_ta}</span> },
   ], []);
 
   return (
     <div className="flex flex-col gap-2">
       <ErrorBox message={error} onRetry={load} />
-      <DataTable minWidth={560} data={data.items} columns={columns} idKey="id" density="compact" emptyState={loading ? false : <EmptyState title="Chưa có thay đổi nào." isCompact />} />
+      <DataTable minWidth={670} data={data.items} columns={columns} idKey="id" density="compact" emptyState={loading ? false : <EmptyState title="Chưa có thay đổi nào." isCompact />} />
       {loading && <Loading />}
       <Pagination total={data.total} page={page} limit={limit} unit="thay đổi" onChangePage={setPage} onChangeLimit={(value) => { changeLimit(value); setPage(1); }} />
     </div>

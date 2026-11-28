@@ -6,6 +6,7 @@ import { Button } from '@astryxdesign/core/Button';
 import { Card } from '@astryxdesign/core/Card';
 import { Heading } from '@astryxdesign/core/Heading';
 import { Selector } from '@astryxdesign/core/Selector';
+import { pixel, proportional } from '@astryxdesign/core/Table';
 import DataTable from '../components/DataTable.jsx';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { changePassword, createUser, deleteUser, listUsers, updateUser } from '../api.js';
@@ -111,17 +112,17 @@ function ManageUsers() {
 
   const columns = [
     {
-      key: 'ten_dang_nhap', header: 'Tên đăng nhập',
+      key: 'ten_dang_nhap', header: 'Tên đăng nhập', width: proportional(1, { minWidth: 260 }),
       renderCell: (u) => <span>{u.ten_dang_nhap}{u.bat_buoc_doi_mat_khau ? <span className="ml-2"><Badge variant="warning" label="chưa đổi mật khẩu" /></span> : null}</span>,
     },
     {
-      key: 'vai_tro', header: 'Vai trò',
+      key: 'vai_tro', header: 'Vai trò', width: pixel(160),
       renderCell: (u) => <Selector label={`Vai trò của ${u.ten_dang_nhap}`} isLabelHidden width={120} value={u.vai_tro} options={ROLE_OPTIONS} onChange={(v) => v && run(() => updateUser(u.id, { vai_tro: v }), 'Đã đổi vai trò')} />,
     },
-    { key: 'tao_luc', header: 'Tạo lúc', renderCell: (u) => <span className="tabular-nums">{formatDateTime(u.tao_luc)}</span> },
-    { key: 'so_phien', header: 'Số phiên', renderCell: (u) => <span className="tabular-nums">{u.so_phien}</span> },
+    { key: 'tao_luc', header: 'Tạo lúc', width: pixel(190), renderCell: (u) => <span className="tabular-nums">{formatDateTime(u.tao_luc)}</span> },
+    { key: 'so_phien', header: 'Số phiên', width: pixel(100), renderCell: (u) => <span className="tabular-nums">{u.so_phien}</span> },
     {
-      key: 'thao_tac', header: '',
+      key: 'thao_tac', header: '', width: pixel(80),
       renderCell: (u) => (
         <RowMenu items={[
           { label: 'Đặt lại mật khẩu', icon: 'key', onClick: () => resetPassword(u) },
@@ -144,7 +145,7 @@ function ManageUsers() {
           <Button type="submit" variant="primary" label="Thêm tài khoản" />
         </form>
         <ErrorBox message={error} onRetry={load} />
-        <DataTable minWidth={600} data={users} columns={columns} idKey="id" density="compact" />
+        <DataTable minWidth={790} data={users} columns={columns} idKey="id" density="compact" />
       </div>
     </Card>
   );

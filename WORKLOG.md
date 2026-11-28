@@ -2,6 +2,11 @@
 
 Nhật ký phát triển (mới nhất ở trên).
 
+## 2026-11-28 — Rà soát và sửa lỗi bố cục bảng sau khi chuyển Astryx
+
+- Bảng của Astryx chia đều cột nên chữ bị cắt (Deadline, Số Pwire xuống dòng, cột Cập nhật ra ngoài màn): đặt độ rộng cột (`pixel`/`proportional`) cho danh sách task, task đã xóa, cập nhật tiến độ, trạng thái, data, tài khoản, lịch sử. Danh sách: PIC chỉ hiện ảnh đại diện (tên ở tooltip), Deadline bỏ giây, nhãn Cập nhật và nút Không đổi xếp dọc.
+- Trang chi tiết: khối Lịch sử thay đổi trải hết hai cột (trước bị cuộn ngang trong khối hẹp).
+
 ## 2026-11-28 — Màu chính sang xanh dương
 
 - `index.css`: ghi đè token accent của theme neutral (#0064E0) trong layer components; theme vẫn là neutral. Cập nhật mục 7.6 của `PROJECT_SPEC.md`.

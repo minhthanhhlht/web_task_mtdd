@@ -5,6 +5,7 @@ import { Card } from '@astryxdesign/core/Card';
 import { Heading } from '@astryxdesign/core/Heading';
 import { Icon } from '@astryxdesign/core/Icon';
 import { Tab, TabList } from '@astryxdesign/core/TabList';
+import { pixel, proportional } from '@astryxdesign/core/Table';
 import { TextArea } from '@astryxdesign/core/TextArea';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import DataTable from '../components/DataTable.jsx';
@@ -86,11 +87,11 @@ export default function DataManager() {
 
   const pageItems = items.slice((page - 1) * limit, page * limit);
   const columns = [
-    { key: 'stt', header: '#', renderCell: (item) => items.indexOf(item) + 1 },
-    { key: 'ten', header: 'Tên', renderCell: (item) => <NameCell key={`${item.id}-${item.ten}`} item={item} onRename={(it, next) => run(() => updateDataItem(it.id, { ten: next }))} /> },
-    { key: 'so_task', header: 'Số task đang dùng', renderCell: (item) => <span className="tabular-nums">{item.so_task}</span> },
+    { key: 'stt', header: '#', width: pixel(60), renderCell: (item) => items.indexOf(item) + 1 },
+    { key: 'ten', header: 'Tên', width: proportional(1, { minWidth: 280 }), renderCell: (item) => <NameCell key={`${item.id}-${item.ten}`} item={item} onRename={(it, next) => run(() => updateDataItem(it.id, { ten: next }))} /> },
+    { key: 'so_task', header: 'Số task đang dùng', width: pixel(170), renderCell: (item) => <span className="tabular-nums">{item.so_task}</span> },
     {
-      key: 'thao_tac', header: '',
+      key: 'thao_tac', header: '', width: pixel(140),
       renderCell: (item) => {
         const index = items.indexOf(item);
         return (
@@ -127,7 +128,7 @@ export default function DataManager() {
           )}
         </div>
       </Card>
-      <DataTable minWidth={500} data={pageItems} columns={columns} idKey="id" density="compact" />
+      <DataTable minWidth={650} data={pageItems} columns={columns} idKey="id" density="compact" />
       <Pagination total={items.length} page={page} limit={limit} unit="mục" onChangePage={setPage} onChangeLimit={(v) => { setLimit(v); setPage(1); }} />
     </div>
   );

@@ -7,6 +7,7 @@ import { Heading } from '@astryxdesign/core/Heading';
 import { Icon } from '@astryxdesign/core/Icon';
 import { Selector } from '@astryxdesign/core/Selector';
 import DataTable from '../components/DataTable.jsx';
+import { pixel, proportional } from '@astryxdesign/core/Table';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
 import { ArrowDown, ArrowUp } from 'lucide-react';
@@ -81,18 +82,18 @@ export default function StatusManager() {
   const change = (s, patch) => run(() => updateStatus(s.id, patch));
   const pageItems = statuses.slice((page - 1) * limit, page * limit);
   const columns = [
-    { key: 'stt', header: '#', renderCell: (s) => pageItems.indexOf(s) + 1 + (page - 1) * limit },
-    { key: 'ten', header: 'Tên trạng thái', renderCell: (s) => <NameCell key={`${s.id}-${s.ten}`} status={s} onChange={change} /> },
+    { key: 'stt', header: '#', width: pixel(50), renderCell: (s) => pageItems.indexOf(s) + 1 + (page - 1) * limit },
+    { key: 'ten', header: 'Tên trạng thái', width: pixel(240), renderCell: (s) => <NameCell key={`${s.id}-${s.ten}`} status={s} onChange={change} /> },
     {
-      key: 'mau', header: 'Màu',
+      key: 'mau', header: 'Màu', width: pixel(180),
       renderCell: (s) => <Selector label={`Màu của ${s.ten}`} isLabelHidden width={150} value={s.mau} options={COLOR_OPTIONS} onChange={(v) => v && change(s, { mau: v })} />,
     },
-    { key: 'xem_truoc', header: 'Xem trước', renderCell: (s) => <StatusBadge name={s.ten} color={s.mau} /> },
-    { key: 'la_hoan_thanh', header: 'Hoàn thành', renderCell: (s) => <CheckboxInput label={`${s.ten} là trạng thái hoàn thành`} isLabelHidden value={Boolean(s.la_hoan_thanh)} onChange={(checked) => change(s, { la_hoan_thanh: checked })} /> },
-    { key: 'yeu_cau_hoan_tat', header: 'Yêu cầu 100% + checklist', renderCell: (s) => <CheckboxInput label={`${s.ten} yêu cầu 100% và checklist`} isLabelHidden value={Boolean(s.yeu_cau_hoan_tat)} onChange={(checked) => change(s, { yeu_cau_hoan_tat: checked })} /> },
-    { key: 'so_task', header: 'Số task', renderCell: (s) => <span className="tabular-nums">{s.so_task}</span> },
+    { key: 'xem_truoc', header: 'Xem trước', width: proportional(1, { minWidth: 140 }), renderCell: (s) => <StatusBadge name={s.ten} color={s.mau} /> },
+    { key: 'la_hoan_thanh', header: 'Hoàn thành', width: pixel(110), renderCell: (s) => <CheckboxInput label={`${s.ten} là trạng thái hoàn thành`} isLabelHidden value={Boolean(s.la_hoan_thanh)} onChange={(checked) => change(s, { la_hoan_thanh: checked })} /> },
+    { key: 'yeu_cau_hoan_tat', header: 'Yêu cầu 100% + checklist', width: pixel(190), renderCell: (s) => <CheckboxInput label={`${s.ten} yêu cầu 100% và checklist`} isLabelHidden value={Boolean(s.yeu_cau_hoan_tat)} onChange={(checked) => change(s, { yeu_cau_hoan_tat: checked })} /> },
+    { key: 'so_task', header: 'Số task', width: pixel(90), renderCell: (s) => <span className="tabular-nums">{s.so_task}</span> },
     {
-      key: 'thao_tac', header: '',
+      key: 'thao_tac', header: '', width: pixel(130),
       renderCell: (s) => {
         const index = statuses.indexOf(s);
         return (
@@ -124,7 +125,7 @@ export default function StatusManager() {
       </Card>
       <ErrorBox message={error} onRetry={reload} />
       {loading && <Loading />}
-      <DataTable data={pageItems} columns={columns} idKey="id" density="compact" />
+      <DataTable minWidth={1090} data={pageItems} columns={columns} idKey="id" density="compact" />
       <Pagination total={statuses.length} page={page} limit={limit} unit="trạng thái" onChangePage={setPage} onChangeLimit={(v) => { setLimit(v); setPage(1); }} />
     </div>
   );

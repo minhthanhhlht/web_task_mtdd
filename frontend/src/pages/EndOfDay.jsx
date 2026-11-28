@@ -8,6 +8,7 @@ import { Heading } from '@astryxdesign/core/Heading';
 import { NumberInput } from '@astryxdesign/core/NumberInput';
 import { Selector } from '@astryxdesign/core/Selector';
 import DataTable from '../components/DataTable.jsx';
+import { pixel, proportional } from '@astryxdesign/core/Table';
 import { Text } from '@astryxdesign/core/Text';
 import { TextArea } from '@astryxdesign/core/TextArea';
 import { TextInput } from '@astryxdesign/core/TextInput';
@@ -113,7 +114,7 @@ export default function EndOfDay() {
 
   const columns = [
     {
-      key: 'task', header: 'Task',
+      key: 'task', header: 'Task', width: proportional(1, { minWidth: 280 }),
       renderCell: (task) => {
         const rs = getReportStatus(task, now);
         return (
@@ -129,7 +130,7 @@ export default function EndOfDay() {
       },
     },
     {
-      key: 'tien_do', header: 'Tiến độ (%)',
+      key: 'tien_do', header: 'Tiến độ (%)', width: pixel(150),
       renderCell: (task) => (
         <NumberInput
           label={`Tiến độ của ${task.ten}`} isLabelHidden min={0} max={100} isIntegerOnly width={110}
@@ -140,7 +141,7 @@ export default function EndOfDay() {
       ),
     },
     {
-      key: 'trang_thai', header: 'Trạng thái',
+      key: 'trang_thai', header: 'Trạng thái', width: pixel(240),
       renderCell: (task) => (
         <Selector
           label={`Trạng thái của ${task.ten}`} isLabelHidden width={200}
@@ -151,7 +152,7 @@ export default function EndOfDay() {
       ),
     },
     {
-      key: 'ghi_chu', header: 'Ghi chú',
+      key: 'ghi_chu', header: 'Ghi chú', width: proportional(1, { minWidth: 260 }),
       renderCell: (task) => (
         <div className="min-w-64" title={task.ghi_chu_rich ? 'Ghi chú có định dạng hoặc ảnh: sửa ở trang chi tiết task' : undefined}>
           <TextArea
@@ -181,7 +182,7 @@ export default function EndOfDay() {
         </div>
       </div>
       <ErrorBox message={error} onRetry={load} />
-      <DataTable data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
+      <DataTable minWidth={930} data={data.items} columns={columns} idKey="id" verticalAlign="middle" emptyState={loading ? false : <EmptyState title="Không có task nào." isCompact />} />
       {loading && <Loading />}
       <Pagination total={data.total} page={page} limit={limit} onChangePage={setPage} onChangeLimit={(v) => { changeLimit(v); setPage(1); }} />
     </div>

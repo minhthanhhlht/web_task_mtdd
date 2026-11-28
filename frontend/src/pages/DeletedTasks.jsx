@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@astryxdesign/core/Button';
 import { EmptyState } from '@astryxdesign/core/EmptyState';
 import { Heading } from '@astryxdesign/core/Heading';
-import { useTableSortable } from '@astryxdesign/core/Table';
+import { pixel, proportional, useTableSortable } from '@astryxdesign/core/Table';
 import DataTable from '../components/DataTable.jsx';
 import { Text } from '@astryxdesign/core/Text';
 import { TextInput } from '@astryxdesign/core/TextInput';
@@ -89,15 +89,15 @@ export default function DeletedTasks() {
   }, [dialog, toast, load]);
 
   const columns = useMemo(() => [
-    { key: 'chu_so_huu', header: 'PIC', sortable: true, renderCell: (t) => (t.chu_so_huu ? <UserChip name={t.chu_so_huu} /> : '—') },
-    { key: 'ma_task', header: 'Số Pwire', sortable: true, renderCell: (t) => <span className="whitespace-nowrap">{t.ma_task}</span> },
-    { key: 'ten', header: 'Tên', sortable: true, renderCell: (t) => <span className="inline-block max-w-64 truncate align-bottom" title={t.ten}>{t.ten}</span> },
-    { key: 'trang_thai', header: 'Trạng thái', sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
-    { key: 'tien_do', header: 'Tiến độ', sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
-    { key: 'xoa_luc', header: 'Xóa lúc', sortable: true, renderCell: (t) => <span className="whitespace-nowrap tabular-nums">{formatDateTime(t.xoa_luc)}</span> },
-    { key: 'nguoi_xoa', header: 'Người xóa', sortable: true, renderCell: (t) => (t.nguoi_xoa ? <UserChip name={t.nguoi_xoa} /> : '—') },
+    { key: 'chu_so_huu', header: 'PIC', width: pixel(120), sortable: true, renderCell: (t) => (t.chu_so_huu ? <UserChip name={t.chu_so_huu} /> : '—') },
+    { key: 'ma_task', header: 'Số Pwire', width: pixel(150), sortable: true, renderCell: (t) => <span className="whitespace-nowrap">{t.ma_task}</span> },
+    { key: 'ten', header: 'Tên', width: proportional(1, { minWidth: 200 }), sortable: true, renderCell: (t) => <span className="block truncate" title={t.ten}>{t.ten}</span> },
+    { key: 'trang_thai', header: 'Trạng thái', width: pixel(190), sortable: true, renderCell: (t) => <StatusBadge name={t.trang_thai} /> },
+    { key: 'tien_do', header: 'Tiến độ', width: pixel(140), sortable: true, renderCell: (t) => <ProgressBar value={t.tien_do} /> },
+    { key: 'xoa_luc', header: 'Xóa lúc', width: pixel(170), sortable: true, renderCell: (t) => <span className="whitespace-nowrap tabular-nums">{formatDateTime(t.xoa_luc)}</span> },
+    { key: 'nguoi_xoa', header: 'Người xóa', width: pixel(130), sortable: true, renderCell: (t) => (t.nguoi_xoa ? <UserChip name={t.nguoi_xoa} /> : '—') },
     {
-      key: 'thao_tac', header: '',
+      key: 'thao_tac', header: '', width: pixel(130),
       renderCell: (t) => (
         <span className="inline-flex items-center gap-1">
           <Button label="Khôi phục" size="sm" isDisabled={busyId === t.id} onClick={() => restore(t)} />
@@ -116,6 +116,7 @@ export default function DeletedTasks() {
       </div>
       <ErrorBox message={error} onRetry={load} />
       <DataTable
+        minWidth={1230}
         data={data.items} columns={columns} idKey="id" density="compact" hasHover plugins={{ sort: sortPlugin }}
         emptyState={loading ? false : <EmptyState title={q ? 'Không có task đã xóa nào khớp.' : 'Chưa có task nào bị xóa.'} isCompact />}
       />

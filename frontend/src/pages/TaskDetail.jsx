@@ -172,7 +172,7 @@ export default function TaskDetail() {
           </Card>
         </div>
 
-        <div className="order-4 min-w-0">
+        <div className="order-4 min-w-0 xl:col-span-2">
           <Card>
             <div className="flex flex-col gap-2">
               <Heading level={2}>Lịch sử thay đổi</Heading>
